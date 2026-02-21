@@ -51,7 +51,7 @@ git clone https://github.com/naiaramassera/espaco-parvati-sistema.git
 👩‍💻 Desenvolvedora
 
 Projeto desenvolvido por Naiara Massera Alves💜
-Estudante e desenvolvedora focada em soluções para estética e bem-estar.
+Estudante e desenvolvedora 
 
 📜 Licença
 
