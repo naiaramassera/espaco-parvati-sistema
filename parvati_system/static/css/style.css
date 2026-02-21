@@ -1,0 +1,29 @@
+body {
+    font-family: 'Poppins', sans-serif;
+    background: #F5EFE6;
+    color: #F5EFE6;
+}
+
+.navbar {
+    background: #F5EFE6;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.btn-primary {
+    background: #C9A66B;
+    border: none;
+}
+
+.btn-primary:hover {
+    background: #B8965A;
+}
+
+.card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+}
+
+input, select, textarea {
+    border-radius: 10px;
+}

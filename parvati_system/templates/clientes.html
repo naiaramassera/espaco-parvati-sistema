@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Clientes</h2>
+
+<a href="/novo_cliente">
+    <button>Novo Cliente</button>
+</a>
+
+<table border="1">
+
+<tr>
+    <th>Nome</th>
+    <th>Telefone</th>
+    <th>Email</th>
+</tr>
+
+{% for c in clientes %}
+
+<tr>
+    <td>
+         <a href="/historico/{{ c.nome }}">
+             {{ c.nome }}
+         </a>
+    </td>
+
+    <td>{{ c.telefone }}</td>
+    <td>{{ c.email }}</td>
+</tr>
+
+{% endfor %}
+
+</table>
+
+{% endblock %}

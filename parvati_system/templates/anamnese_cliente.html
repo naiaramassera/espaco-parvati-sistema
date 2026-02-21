@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+
+<meta charset="UTF-8">
+<title>Anamnese - Espaço Parvati</title>
+
+<link rel="stylesheet"
+ href="{{ url_for('static', filename='css/style.css') }}">
+
+</head>
+
+<body>
+
+<div class="form-box">
+
+<h2>Ficha de Atendimento</h2>
+<p>Espaço Parvati</p>
+
+<form method="POST">
+
+<label>Nome</label>
+<input type="text" name="cliente" required>
+
+<label>Telefone</label>
+<input type="text" name="telefone" required>
+
+<label>Idade</label>
+<input type="text" name="idade">
+
+<label>Sexo</label>
+<select name="sexo">
+<option>Feminino</option>
+<option>Masculino</option>
+<option>Outro</option>
+</select>
+
+<label>Possui doença?</label>
+<select name="doenca">
+<option>Não</option>
+<option>Sim</option>
+</select>
+
+<label>Usa medicação?</label>
+<select name="medicacao">
+<option>Não</option>
+<option>Sim</option>
+</select>
+
+<label>Alergias</label>
+<textarea name="alergias"></textarea>
+
+<label>Observações</label>
+<textarea name="observacoes"></textarea>
+
+<label>Procedimento</label>
+<input type="text" name="procedimento">
+
+<label>Data</label>
+<input type="date" name="data">
+
+<button type="submit">Enviar</button>
+
+</form>
+
+</div>
+
+</body>
+</html>

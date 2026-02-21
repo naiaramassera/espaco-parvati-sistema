@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Ficha do Cliente</h2>
+
+<p><b>Nome:</b> {{ item.cliente }}</p>
+<p><b>Telefone:</b> {{ item.telefone }}</p>
+<p><b>Idade:</b> {{ item.idade }}</p>
+<p><b>Sexo:</b> {{ item.sexo }}</p>
+
+<p><b>Doença:</b> {{ item.possui_doenca }}</p>
+<p><b>Medicação:</b> {{ item.usa_medicacao }}</p>
+
+<p><b>Alergias:</b> {{ item.alergias }}</p>
+<p><b>Observações:</b> {{ item.observacoes }}</p>
+
+<p><b>Procedimento:</b> {{ item.procedimento }}</p>
+<p><b>Data:</b> {{ item.data }}</p>
+
+{% endblock %}

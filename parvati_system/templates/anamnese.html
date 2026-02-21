@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Anamnese do Cliente</h2>
+
+<form method="POST" class="form-box">
+
+    <label>Nome do Cliente</label>
+    <input type="text" name="cliente" required>
+
+    <label>Telefone</label>
+    <input type="text" name="telefone" required>
+
+    <label>Idade</label>
+    <input type="text" name="idade">
+
+    <label>Sexo</label>
+    <select name="sexo">
+        <option>Feminino</option>
+        <option>Masculino</option>
+        <option>Outro</option>
+    </select>
+
+    <label>Possui alguma doença?</label>
+    <select name="doenca">
+        <option>Não</option>
+        <option>Sim</option>
+    </select>
+
+    <label>Usa medicação contínua?</label>
+    <select name="medicacao">
+        <option>Não</option>
+        <option>Sim</option>
+    </select>
+
+    <label>Alergias</label>
+    <textarea name="alergias"></textarea>
+
+    <label>Observações</label>
+    <textarea name="observacoes"></textarea>
+
+    <label>Procedimento</label>
+    <input type="text" name="procedimento">
+
+    <label>Data</label>
+    <input type="date" name="data">
+
+    <button type="submit">Salvar Anamnese</button>
+
+</form>
+
+{% endblock %}

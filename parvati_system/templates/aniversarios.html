@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h2>🎂 Aniversariantes do Mês</h2>
+
+<ul>
+{% for c in clientes %}
+    <li>
+        {{ c.nome }} — {{ c.nascimento.strftime("%d/%m") }}
+        📱 {{ c.telefone }}
+    </li>
+{% endfor %}
+</ul>
+
+{% endblock %}

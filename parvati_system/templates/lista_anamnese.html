@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Prontuários / Anamneses</h2>
+
+<table class="agenda-table">
+
+<tr>
+    <th>Cliente</th>
+    <th>Telefone</th>
+    <th>Procedimento</th>
+    <th>Data</th>
+    <th>Ações</th>
+</tr>
+
+{% for item in lista %}
+
+<tr>
+    <td>{{ item.cliente }}</td>
+    <td>{{ item.telefone }}</td>
+    <td>{{ item.procedimento }}</td>
+    <td>{{ item.data }}</td>
+
+    <td>
+        <a href="/ver_anamnese/{{ item.id }}" class="btn-small blue">
+            Ver
+        </a>
+    </td>
+</tr>
+
+{% endfor %}
+
+</table>
+
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2>Histórico - {{ cliente.nome }}</h2>
+
+<p>📞 {{ cliente.telefone }}</p>
+<p>📧 {{ cliente.email }}</p>
+
+<hr>
+
+<h3>Atendimentos</h3>
+
+<table>
+<tr>
+    <th>Data</th>
+    <th>Hora</th>
+    <th>Procedimento</th>
+    <th>Profissional</th>
+</tr>
+
+{% for a in agendamentos %}
+<tr>
+    <td>{{ a.data }}</td>
+    <td>{{ a.hora }}</td>
+    <td>{{ a.procedimento }}</td>
+    <td>{{ a.profissional }}</td>
+</tr>
+{% endfor %}
+</table>
+
+<hr>
+
+<h3>Observações</h3>
+<p>{{ cliente.observacao }}</p>
+
+{% endblock %}

@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+/* Paleta Parvati */
+:root {
+    --marsala: #7A2E3A;
+    --offwhite: #FAF9F7;
+    --dourado: #C9A24D;
+    --cinza: #f0f0f0;
+}
+
+body {
+    background: var(--offwhite);
+}
+
+/* Cards */
+.card-parvati {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    border-left: 6px solid var(--dourado);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    transition: 0.3s;
+}
+
+.card-parvati:hover {
+    transform: translateY(-5px);
+}
+
+/* Títulos */
+.titulo {
+    color: var(--marsala);
+    font-weight: 600;
+}
+
+/* Destaque */
+.valor {
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--dourado);
+}
+
+/* Frase */
+.frase {
+    background: linear-gradient(135deg, var(--marsala), #4b1d25);
+    color: white;
+    padding: 25px;
+    border-radius: 18px;
+    text-align: center;
+    font-size: 18px;
+}
+</style>
+
+<!-- Frase da Marca -->
+<div class="frase mb-4">
+    ✨ Beleza com consciência, elegância e naturalidade ✨
+</div>
+
+<!-- Cards Resumo -->
+<div class="row g-4">
+
+    <!-- Agenda Hoje -->
+    <div class="col-md-3">
+        <div class="card-parvati">
+            <h6 class="titulo">📅 Agenda Hoje</h6>
+            <div class="valor">{{ total_hoje }}</div>
+            <small>Atendimentos</small>
+        </div>
+    </div>
+
+    <!-- Clientes -->
+    <div class="col-md-3">
+        <div class="card-parvati">
+            <h6 class="titulo">👩‍🦰 Clientes</h6>
+            <div class="valor">{{ total_clientes }}</div>
+            <small>Cadastrados</small>
+        </div>
+    </div>
+
+    <!-- Procedimentos -->
+    <div class="col-md-3">
+        <div class="card-parvati">
+            <h6 class="titulo">💉 Procedimentos</h6>
+            <div class="valor">{{ total_procedimentos }}</div>
+            <small>Realizados</small>
+        </div>
+    </div>
+
+    <!-- Faturamento -->
+    <div class="col-md-3">
+        <div class="card-parvati">
+            <h6 class="titulo">💰 Faturamento</h6>
+            <div class="valor">R$ {{ faturamento }}</div>
+            <small>Mês Atual</small>
+        </div>
+    </div>
+
+</div>
+
+<!-- Agenda do Dia -->
+<div class="card-parvati mt-5">
+
+    <h5 class="titulo mb-3">⏰ Atendimentos de Hoje</h5>
+
+    {% if agenda_hoje %}
+
+        <table class="table table-sm">
+
+            <thead>
+                <tr>
+                    <th>Hora</th>
+                    <th>Cliente</th>
+                    <th>Procedimento</th>
+                    <th>Profissional</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+            {% for item in agenda_hoje %}
+
+            <tr>
+                <td>{{ item.hora }}</td>
+                <td>{{ item.cliente }}</td>
+                <td>{{ item.procedimento }}</td>
+                <td>{{ item.profissional }}</td>
+            </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    {% else %}
+
+        <p class="text-muted">Nenhum atendimento hoje ✨</p>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

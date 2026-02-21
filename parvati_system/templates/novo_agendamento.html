@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h2>Novo Agendamento</h2>
+
+<div id="calendar"></div>
+
+<hr>
+
+<form method="POST">
+
+    <label>Cliente:</label>
+    <input type="text" name="cliente" required>
+
+    <label>Telefone:</label>
+    <input type="text" name="telefone" required>
+
+    <label>Data:</label>
+    <input type="date" name="data" id="data" value="{{ data }}" required>
+
+    <label>Hora:</label>
+    <input type="time" name="hora" required>
+
+    <label>Profissional:</label>
+    <select name="profissional">
+        <option>Naiara</option>
+        <option>Polyana</option>
+        <option>Marina</option>
+        <option>Ana Claudia</option>
+        <option>Lizandra</option>
+    </select>
+
+    <label>Procedimento:</label>
+    <input type="text" name="procedimento">
+
+    <button type="submit">Salvar Agendamento</button>
+
+</form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+    var calendarEl = document.getElementById('calendar');
+
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+
+        dateClick: function(info) {
+            document.getElementById('data').value = info.dateStr;
+        }
+    });
+
+    calendar.render();
+});
+</script>
+
+{% endblock %}
