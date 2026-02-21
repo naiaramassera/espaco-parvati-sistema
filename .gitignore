@@ -1,6 +1,10 @@
+# Python
 __pycache__/
-venv/
-.env
-*.db
+*.pyc
+.venv/
+
+# Flask
 instance/
+
+# PyCharm
 .idea/

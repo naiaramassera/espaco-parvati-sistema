@@ -5,34 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="7ef2f509-8b42-4ffa-a61c-665d3ee01063" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/EspaçoParvati.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/parvati_system/app.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/parvati_system/static/css/logo.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/parvati_system/static/css/style.css" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/parvati_system/static/js/main.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/parvati_system/templates/agenda.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/parvati_system/templates/anamnese.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/parvati_system/templates/anamnese_cliente.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/parvati_system/templates/aniversarios.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/parvati_system/templates/base.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/parvati_system/templates/clientes.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/parvati_system/templates/financeiro.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/parvati_system/templates/historico.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/parvati_system/templates/home.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/parvati_system/templates/lista_anamnese.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/parvati_system/templates/login.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/parvati_system/templates/novo_agendamento.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/parvati_system/templates/novo_cliente.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/parvati_system/templates/obrigado.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/parvati_system/templates/ver_anamnese.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
