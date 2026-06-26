@@ -6,7 +6,6 @@ from datetime import date, timedelta
 
 import schedule
 
-from parvati_system.app import app
 from parvati_system.models import Cliente, DisparoCampanha, db
 from parvati_system.whatsapp import enviar_mensagem as _wpp_enviar
 
@@ -56,6 +55,7 @@ def gerar_cupom(nome):
 
 
 def disparar_aniversarios():
+    from parvati_system.app import app
     with app.app_context():
         hoje = date.today()
         links = []
@@ -93,6 +93,7 @@ Preparamos um presente especial: use o cupom {cupom} no seu proximo procedimento
 
 
 def campanha_promocional(mensagem_base=None, observacao="Promocao automatica enviada"):
+    from parvati_system.app import app
     with app.app_context():
         hoje = date.today()
         links = []
@@ -121,6 +122,7 @@ Entre em contato para garantir seu horario."""
 
 
 def recuperar_clientes_inativos():
+    from parvati_system.app import app
     with app.app_context():
         hoje = date.today()
         limite = hoje - timedelta(days=90)
@@ -152,6 +154,7 @@ Preparamos uma condicao especial para seu retorno. Quer que eu te envie opcoes d
 
 
 def lembrar_retorno_procedimento():
+    from parvati_system.app import app
     with app.app_context():
         hoje = date.today()
         links = []
