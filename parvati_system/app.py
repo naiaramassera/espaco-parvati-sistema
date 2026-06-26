@@ -21,7 +21,11 @@ CORES_PROFISSIONAIS = {
 
 app.config["SECRET_KEY"] = os.environ.get("PARVATI_SECRET_KEY", "parvati-secret-local")
 
-_db_url = os.environ.get("DATABASE_URL", "sqlite:///parvati.db")
+_db_url = os.environ.get("DATABASE_URL", "")
+if not _db_url:
+    # Vercel tem filesystem read-only; usa /tmp para SQLite
+    _sqlite_path = "/tmp/parvati.db" if os.environ.get("VERCEL") else "parvati.db"
+    _db_url = f"sqlite:///{_sqlite_path}"
 # Render.com entrega "postgres://..." mas SQLAlchemy 1.4+ exige "postgresql://"
 if _db_url.startswith("postgres://"):
     _db_url = _db_url.replace("postgres://", "postgresql://", 1)
