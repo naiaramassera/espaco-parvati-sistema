@@ -2234,9 +2234,11 @@ def _extrair_mensagem_webhook(payload: dict) -> tuple[str, str, str] | None:
             texto = texto.get("message", "")
         return payload["phone"], str(texto), payload.get("senderName", "")
 
-    # Evolution API
+    # Evolution API — data pode ser dict ou list
     data = payload.get("data", {})
-    if data.get("messageType") == "conversation":
+    if isinstance(data, list):
+        data = data[0] if data else {}
+    if isinstance(data, dict) and data.get("messageType") == "conversation":
         numero = data.get("key", {}).get("remoteJid", "").replace("@s.whatsapp.net", "")
         texto = data.get("message", {}).get("conversation", "")
         nome = data.get("pushName", "")
