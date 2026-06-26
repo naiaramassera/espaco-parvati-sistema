@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="premium-page-header">
+    <div>
+        <h2 class="section-title">Agente Comercial</h2>
+        <p class="section-subtitle">Leads, retornos, clientes inativos e oportunidades para vender procedimentos.</p>
+    </div>
+    <div class="premium-actions">
+        <a href="{{ url_captura }}" target="_blank"><button class="btn-gold">Abrir captura</button></a>
+        <a href="{{ url_for('marketing_ia') }}"><button class="btn-outline">Marketing IA</button></a>
+    </div>
+</div>
+
+<div class="ai-hero panel-card">
+    <div>
+        <span class="ai-kicker">Funil automatizado</span>
+        <h3>Venda com fila de prioridades</h3>
+        <p>O agente calcula quem esta mais pronto para conversar, prepara abordagem e deixa o contato no WhatsApp para aprovacao humana.</p>
+    </div>
+    <div class="ai-hero-metrics">
+        <div>
+            <span>Leads</span>
+            <strong>{{ leads|length }}</strong>
+        </div>
+        <div>
+            <span>Inativos</span>
+            <strong>{{ clientes_inativos|length }}</strong>
+        </div>
+        <div>
+            <span>Retornos</span>
+            <strong>{{ retornos|length }}</strong>
+        </div>
+    </div>
+</div>
+
+<div class="ai-layout">
+    <section class="panel-card">
+        <h3 class="form-section-title">Fila de hoje</h3>
+        <div class="ai-task-list">
+            {% for tarefa in tarefas %}
+                <a class="ai-task" href="{{ tarefa.ancora }}">
+                    <div>
+                        <strong>{{ tarefa.titulo }}</strong>
+                        <span>{{ tarefa.acao }}</span>
+                    </div>
+                    <em>{{ tarefa.quantidade }}</em>
+                </a>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="panel-card">
+        <h3 class="form-section-title">Cadastrar lead manual</h3>
+        <form method="POST">
+            <label>Nome</label>
+            <input type="text" name="nome" required>
+
+            <label>WhatsApp</label>
+            <input type="text" name="telefone" required>
+
+            <label>Email</label>
+            <input type="email" name="email">
+
+            <label>Interesse</label>
+            <select name="interesse">
+                <option value="Avaliacao estetica">Avaliacao estetica</option>
+                {% for item in procedimentos %}
+                    <option value="{{ item.nome }}">{{ item.categoria or 'Geral' }} - {{ item.nome }}</option>
+                {% endfor %}
+            </select>
+
+            <label>Origem</label>
+            <input type="text" name="origem" value="manual">
+
+            <label>Mensagem / contexto</label>
+            <textarea name="mensagem" rows="3" placeholder="Ex.: perguntou valor do botox pelo Instagram"></textarea>
+
+            <button type="submit" class="btn-gold">Salvar e qualificar</button>
+        </form>
+    </section>
+</div>
+
+<div id="leads-quentes" class="table-card" style="margin-top: 22px;">
+    <div class="premium-table-header">
+        <div>
+            <h3 class="form-section-title">Leads priorizados</h3>
+            <p class="section-subtitle">Atenda de cima para baixo: maior score primeiro.</p>
+        </div>
+        <span class="badge badge-info">Link publico: {{ url_captura }}</span>
+    </div>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Lead</th>
+                    <th>Interesse</th>
+                    <th>Score</th>
+                    <th>Status</th>
+                    <th>IA</th>
+                    <th>Acoes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for lead in leads %}
+                <tr id="{% if lead.status == 'novo' %}leads-novos{% endif %}">
+                    <td>
+                        <strong>{{ lead.nome }}</strong><br>
+                        <small>{{ lead.telefone }}{% if lead.email %} | {{ lead.email }}{% endif %}</small>
+                    </td>
+                    <td>{{ lead.interesse or '-' }}<br><small>{{ lead.origem or 'manual' }}</small></td>
+                    <td>
+                        {% if lead.prioridade == "quente" %}
+                            <span class="badge badge-success">{{ lead.score }}</span>
+                        {% elif lead.prioridade == "morno" %}
+                            <span class="badge badge-warning">{{ lead.score }}</span>
+                        {% else %}
+                            <span class="badge badge-info">{{ lead.score }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ lead.status }}</td>
+                    <td style="min-width: 260px;">{{ lead.resposta_ia or '-' }}</td>
+                    <td>
+                        <div class="premium-actions">
+                            <a href="{{ url_for('whatsapp_lead', id=lead.id) }}" target="_blank"><button class="btn-gold">WhatsApp</button></a>
+                            <form method="POST" action="{{ url_for('qualificar_lead', id=lead.id) }}">
+                                <button type="submit" class="btn-outline">Requalificar</button>
+                            </form>
+                            <form method="POST" action="{{ url_for('converter_lead', id=lead.id) }}">
+                                <button type="submit" class="btn-outline">Converter</button>
+                            </form>
+                            <form method="POST" action="{{ url_for('status_lead', id=lead.id) }}">
+                                <select name="status">
+                                    <option value="novo" {% if lead.status == 'novo' %}selected{% endif %}>Novo</option>
+                                    <option value="em_contato" {% if lead.status == 'em_contato' %}selected{% endif %}>Em contato</option>
+                                    <option value="agendado" {% if lead.status == 'agendado' %}selected{% endif %}>Agendado</option>
+                                    <option value="perdido" {% if lead.status == 'perdido' %}selected{% endif %}>Perdido</option>
+                                </select>
+                                <button type="submit" class="btn-outline">Salvar</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6">Nenhum lead cadastrado ainda.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="clientes-inativos" class="ai-layout" style="margin-top: 22px;">
+    <section class="table-card">
+        <h3 class="form-section-title">Clientes inativos</h3>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Dias</th>
+                        <th>Acao</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in clientes_inativos %}
+                    <tr>
+                        <td>{{ item.cliente.nome }}</td>
+                        <td>{{ item.dias }}</td>
+                        <td><a href="{{ item.whatsapp }}" target="_blank">WhatsApp</a></td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="3">Nenhum cliente inativo prioritario.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section id="retornos" class="table-card">
+        <h3 class="form-section-title">Retornos para vender continuidade</h3>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Procedimento</th>
+                        <th>Acao</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in retornos %}
+                    <tr>
+                        <td>{{ item.agendamento.cliente }}</td>
+                        <td>{{ item.agendamento.procedimento }}</td>
+                        <td><a href="{{ item.whatsapp }}" target="_blank">WhatsApp</a></td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="3">Nenhum retorno na janela.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+{% endblock %}

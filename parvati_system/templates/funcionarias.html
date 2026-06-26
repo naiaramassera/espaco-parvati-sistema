@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="premium-page-header">
+    <div>
+        <h2 class="section-title">Funcionarias</h2>
+        <p class="section-subtitle">Cadastre logins e defina qual agenda cada profissional pode gerenciar.</p>
+    </div>
+</div>
+
+<div class="financeiro-grid">
+    <div class="table-card">
+        <div class="premium-table-header">
+            <h3>Logins cadastrados</h3>
+        </div>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Email</th>
+                        <th>Perfil</th>
+                        <th>Profissional</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for usuario in usuarios %}
+                    <tr>
+                        <td>{{ usuario.nome }}</td>
+                        <td>{{ usuario.email }}</td>
+                        <td>{{ usuario.perfil }}</td>
+                        <td>{{ usuario.profissional or '-' }}</td>
+                        <td>{% if usuario.ativo %}Ativo{% else %}Inativo{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="form-card">
+        <h3>Salvar funcionaria</h3>
+        <form method="POST">
+            <label>Editar login existente</label>
+            <select name="user_id">
+                <option value="">Novo login</option>
+                {% for usuario in usuarios %}
+                    <option value="{{ usuario.id }}">{{ usuario.nome }} - {{ usuario.email }}</option>
+                {% endfor %}
+            </select>
+
+            <label>Nome</label>
+            <input type="text" name="nome" required>
+
+            <label>Email</label>
+            <input type="email" name="email" required>
+
+            <label>Senha</label>
+            <input type="text" name="senha" placeholder="Preencha para criar ou trocar a senha">
+
+            <label>Perfil</label>
+            <select name="perfil">
+                <option value="profissional">Profissional</option>
+                <option value="admin">Administradora</option>
+            </select>
+
+            <label>Agenda vinculada</label>
+            <select name="profissional" required>
+                {% for profissional in profissionais %}
+                    <option value="{{ profissional }}">{{ profissional }}</option>
+                {% endfor %}
+            </select>
+
+            <label class="checkbox-line">
+                <input type="checkbox" name="ativo" checked>
+                Login ativo
+            </label>
+
+            <button type="submit" class="btn-gold">Salvar</button>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

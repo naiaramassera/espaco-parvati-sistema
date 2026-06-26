@@ -1,59 +1,33 @@
-# 🌸 Espaço Parvati - Sistema de Gestão
+# Parvati Estetica - Sistema de Gestao
 
-Sistema desenvolvido para gerenciamento de clínica estética, com foco em organização, agendamentos e atendimento ao cliente.
+Sistema desenvolvido para gerenciamento de estetica, com foco em organizacao, agendamentos, atendimento ao cliente, anamnese, financeiro, campanhas e estoque.
 
----
+## Funcionalidades
 
-## 📌 Funcionalidades
+- Cadastro de clientes
+- Agenda por profissional
+- Confirmacao de agendamento por WhatsApp
+- Reagendamento com validacao de conflito
+- Anamnese digital
+- Prontuario e historico de atendimentos
+- Controle financeiro
+- Estoque
+- Campanhas de relacionamento
+- Sistema de login
 
-✔️ Cadastro de clientes  
-✔️ Anamnese digital  
-✔️ Agendamento online  
-✔️ Histórico de atendimentos  
-✔️ Controle financeiro  
-✔️ Área administrativa  
-✔️ Sistema de login  
+## Tecnologias
 
----
-
-## 💻 Tecnologias Utilizadas
-
-- Python (Flask)
+- Python Flask
 - HTML5
 - CSS3
 - JavaScript
 - SQLite
-- Git & GitHub
 
----
-
-## 📁 Estrutura do Projeto
-espaco-parvati/
-│
-├── parvati_system/
-│ ├── app.py
-│ ├── templates/
-│ ├── static/
-│
-├── instance/
-├── requirements.txt
-└── README.md
-
----
-
-## ▶️ Como Executar o Projeto
-
-1️⃣ Clone o repositório:
+## Como Executar
 
 ```bash
-git clone https://github.com/naiaramassera/espaco-parvati-sistema.git
+pip install -r requirements.txt
+python main.py
+```
 
-👩‍💻 Desenvolvedora
-
-Projeto desenvolvido por Naiara Massera Alves💜
-Estudante e desenvolvedora 
-
-📜 Licença
-
-Este projeto é de uso educacional e profissional.
-Todos os direitos reservados.
+Projeto desenvolvido por Naiara Massera Alves.

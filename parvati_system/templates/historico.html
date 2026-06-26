@@ -2,36 +2,115 @@
 
 {% block content %}
 
-<h2>Histórico - {{ cliente.nome }}</h2>
+<div class="premium-page-header">
+    <div>
+        <h2 class="section-title">Histórico - {{ cliente.nome }}</h2>
+        <p class="section-subtitle">Atendimentos anteriores, observações, anamnese e prontuário</p>
+    </div>
 
-<p>📞 {{ cliente.telefone }}</p>
-<p>📧 {{ cliente.email }}</p>
+    <div class="premium-actions">
+        <a href="{{ url_for('prontuario', id=cliente.id) }}"><button class="btn-gold">Abrir Prontuário</button></a>
+        <a href="{{ url_for('enviar_anamnese_cliente', id=cliente.id) }}"><button class="btn-outline">Enviar Anamnese</button></a>
+    </div>
+</div>
 
-<hr>
+<div class="panel-card historico-client-card">
+    <div class="prontuario-client-top">
+        <div class="prontuario-avatar">
+            {{ cliente.nome[0] if cliente and cliente.nome else "C" }}
+        </div>
 
-<h3>Atendimentos</h3>
+        <div class="prontuario-client-info">
+            <h3>{{ cliente.nome }}</h3>
+            <p>Telefone: {{ cliente.telefone or 'Não informado' }}</p>
+            <p>Email: {{ cliente.email or 'Não informado' }}</p>
+            <p>Última visita: {{ cliente.ultima_visita or 'Não informado' }}</p>
+        </div>
+    </div>
+</div>
 
-<table>
-<tr>
-    <th>Data</th>
-    <th>Hora</th>
-    <th>Procedimento</th>
-    <th>Profissional</th>
-</tr>
+<div class="panel-card prontuario-section-card">
+    <div class="prontuario-section-title-row">
+        <h3 class="form-section-title">Atendimentos</h3>
+    </div>
 
-{% for a in agendamentos %}
-<tr>
-    <td>{{ a.data }}</td>
-    <td>{{ a.hora }}</td>
-    <td>{{ a.procedimento }}</td>
-    <td>{{ a.profissional }}</td>
-</tr>
-{% endfor %}
-</table>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Hora</th>
+                    <th>Procedimento</th>
+                    <th>Profissional</th>
+                    <th>Valor</th>
+                    <th>Pagamento</th>
+                    <th>Status</th>
+                    <th>Observações</th>
+                    <th>Contrato</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in agendamentos %}
+                <tr>
+                    <td>{{ a.data }}</td>
+                    <td>{{ a.hora }}</td>
+                    <td>{{ a.procedimento }}</td>
+                    <td>{{ a.profissional }}</td>
+                    <td>R$ {{ a.valor or 0 }}</td>
+                    <td>{{ a.pagamento or '-' }}</td>
+                    <td><span class="badge badge-info">{{ status_agendamento.get(a.status, a.status) }}</span></td>
+                    <td>{{ a.observacoes or 'Sem observações' }}</td>
+                    <td><a href="{{ url_for('enviar_contrato_cliente', id=a.id) }}">Enviar</a></td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="9">Nenhum atendimento encontrado.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 
-<hr>
+<div class="panel-card prontuario-section-card">
+    <div class="prontuario-section-title-row">
+        <h3 class="form-section-title">Anamneses</h3>
+    </div>
 
-<h3>Observações</h3>
-<p>{{ cliente.observacao }}</p>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Avaliação</th>
+                    <th>Plano</th>
+                    <th>Abrir</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for anamnese in anamneses %}
+                <tr>
+                    <td>{{ anamnese.data.strftime('%d/%m/%Y') if anamnese.data else '-' }}</td>
+                    <td>{{ anamnese.avaliacao or 'Não informado' }}</td>
+                    <td>{{ anamnese.plano_tratamento or 'Não informado' }}</td>
+                    <td><a href="{{ url_for('ver_anamnese', id=anamnese.id) }}">Ver</a></td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4">Nenhuma anamnese cadastrada.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="panel-card prontuario-section-card">
+    <div class="prontuario-section-title-row">
+        <h3 class="form-section-title">Observações do Cliente</h3>
+    </div>
+
+    <p>{{ cliente.observacao or 'Nenhuma observação cadastrada.' }}</p>
+</div>
 
 {% endblock %}

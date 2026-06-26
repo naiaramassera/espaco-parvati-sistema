@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="premium-page-header">
+    <div>
+        <h2 class="section-title">Prontuario</h2>
+        <p class="section-subtitle">Historico clinico, evolucoes, fotos e registros da cliente</p>
+    </div>
+</div>
+
+<div class="prontuario-layout">
+    <div class="prontuario-main">
+        <div class="panel-card prontuario-client-card">
+            <div class="prontuario-client-top">
+                <div class="prontuario-avatar">
+                    {{ cliente.nome[0] if cliente and cliente.nome else "C" }}
+                </div>
+
+                <div class="prontuario-client-info">
+                    <h3>{{ cliente.nome }}</h3>
+                    <p>Telefone: {{ cliente.telefone or 'Nao informado' }}</p>
+                    <p>Email: {{ cliente.email or 'Nao informado' }}</p>
+                    <p>Aniversario: {{ cliente.aniversario or 'Nao informado' }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel-card prontuario-section-card">
+            <div class="prontuario-section-title-row">
+                <h3 class="form-section-title">Anamnese</h3>
+            </div>
+
+            {% if anamnese %}
+                <div class="prontuario-grid">
+                    <div><strong>Doencas:</strong><br>{{ anamnese.doencas or 'Nao informado' }}</div>
+                    <div><strong>Medicamentos:</strong><br>{{ anamnese.medicamentos or 'Nao informado' }}</div>
+                    <div><strong>Alergias:</strong><br>{{ anamnese.alergias or 'Nao informado' }}</div>
+                    <div><strong>Tipo de pele:</strong><br>{{ anamnese.tipo_pele or 'Nao informado' }}</div>
+                    <div><strong>Sensibilidade:</strong><br>{{ anamnese.sensibilidade or 'Nao informado' }}</div>
+                    <div><strong>Plano de tratamento:</strong><br>{{ anamnese.plano_tratamento or 'Nao informado' }}</div>
+                </div>
+            {% else %}
+                <p>Nenhuma anamnese cadastrada.</p>
+            {% endif %}
+        </div>
+
+        <div class="panel-card prontuario-section-card">
+            <div class="prontuario-section-title-row">
+                <h3 class="form-section-title">Historico de Atendimentos</h3>
+            </div>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Hora</th>
+                            <th>Procedimento</th>
+                            <th>Profissional</th>
+                            <th>Status</th>
+                            <th>Observacoes</th>
+                            <th>Contrato</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in historico %}
+                        <tr>
+                            <td>{{ item.data }}</td>
+                            <td>{{ item.hora }}</td>
+                            <td>{{ item.procedimento }}</td>
+                            <td>{{ item.profissional }}</td>
+                            <td>{{ status_agendamento.get(item.status, item.status) }}</td>
+                            <td>{{ item.observacoes or 'Sem observacoes' }}</td>
+                            <td><a href="{{ url_for('enviar_contrato_cliente', id=item.id) }}">Enviar</a></td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7">Nenhum atendimento encontrado.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="panel-card prontuario-section-card">
+            <div class="prontuario-section-title-row">
+                <h3 class="form-section-title">Fotos / Evolucao</h3>
+            </div>
+
+            <form method="POST" enctype="multipart/form-data" action="{{ url_for('upload_foto', id=cliente.id) }}" class="prontuario-upload-form">
+                <div class="premium-form-grid">
+                    <div>
+                        <label for="foto">Selecionar foto</label>
+                        <input type="file" name="foto" id="foto">
+                    </div>
+
+                    <div>
+                        <label for="tipo_foto">Tipo</label>
+                        <select name="tipo_foto" id="tipo_foto">
+                            <option value="antes">Antes</option>
+                            <option value="depois">Depois</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="prontuario-actions">
+                    <button type="submit" class="btn-gold">Salvar Foto</button>
+                </div>
+            </form>
+
+            {% if foto_antes and foto_depois %}
+            <div class="before-after-panel">
+                <div class="before-after-header">
+                    <div>
+                        <h4>Comparativo Antes / Depois</h4>
+                        <p>Arraste o controle para comparar a evolucao visual.</p>
+                    </div>
+                </div>
+
+                <div class="before-after-compare" data-before-after>
+                    <img class="before-after-img" src="{{ url_for('static', filename='upload/' ~ foto_antes.imagem) }}" alt="Foto antes">
+                    <div class="before-after-overlay" data-before-after-overlay>
+                        <img class="before-after-img" src="{{ url_for('static', filename='upload/' ~ foto_depois.imagem) }}" alt="Foto depois">
+                    </div>
+                    <div class="before-after-divider" data-before-after-divider></div>
+                    <span class="before-after-label before-label">Antes</span>
+                    <span class="before-after-label after-label">Depois</span>
+                    <input class="before-after-range" data-before-after-range type="range" min="0" max="100" value="50" aria-label="Comparar antes e depois">
+                </div>
+            </div>
+            {% elif fotos %}
+            <div class="before-after-empty">
+                Cadastre pelo menos uma foto Antes e uma Depois para liberar o comparativo.
+            </div>
+            {% endif %}
+
+            {% if fotos %}
+            <div class="prontuario-fotos-grid">
+                {% for foto in fotos %}
+                <div class="foto-card">
+                    <img src="{{ url_for('static', filename='upload/' ~ foto.imagem) }}" alt="Foto da cliente">
+                    <span class="foto-badge">{{ foto.descricao }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+                <p style="margin-top: 10px;">Nenhuma foto cadastrada.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <aside class="prontuario-side">
+        <div class="panel-card prontuario-side-card">
+            <h3 class="anamnese-side-title">Atalhos</h3>
+
+            <div class="anamnese-side-links">
+                <a href="{{ url_for('clientes') }}" class="anamnese-side-link">Voltar para Clientes</a>
+                <a href="{{ url_for('anamnese') }}" class="anamnese-side-link">Nova Anamnese</a>
+                <a href="{{ url_for('enviar_anamnese_cliente', id=cliente.id) }}" class="anamnese-side-link">Enviar Anamnese</a>
+                <a href="{{ url_for('agenda') }}" class="anamnese-side-link">Ver Agenda</a>
+            </div>
+        </div>
+    </aside>
+</div>
+
+<script>
+document.querySelectorAll("[data-before-after]").forEach(function (container) {
+    const range = container.querySelector("[data-before-after-range]");
+    const overlay = container.querySelector("[data-before-after-overlay]");
+    const divider = container.querySelector("[data-before-after-divider]");
+
+    function update(value) {
+        overlay.style.clipPath = "inset(0 " + (100 - value) + "% 0 0)";
+        divider.style.left = value + "%";
+    }
+
+    update(range.value);
+    range.addEventListener("input", function () {
+        update(this.value);
+    });
+});
+</script>
+
+{% endblock %}

@@ -2,144 +2,104 @@
 
 {% block content %}
 
-<style>
-/* Paleta Parvati */
-:root {
-    --marsala: #7A2E3A;
-    --offwhite: #FAF9F7;
-    --dourado: #C9A24D;
-    --cinza: #f0f0f0;
-}
+<h2 class="section-title">Dashboard</h2>
+<p class="section-subtitle">Visao geral da estetica hoje</p>
 
-body {
-    background: var(--offwhite);
-}
+<div class="cards-grid">
+    <div class="dashboard-card luxury-card">
+        <div class="card-icon">Agenda</div>
+        <h3>Agenda Hoje</h3>
+        <p>{{ total_hoje }}</p>
+    </div>
 
-/* Cards */
-.card-parvati {
-    background: white;
-    border-radius: 16px;
-    padding: 20px;
-    border-left: 6px solid var(--dourado);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-    transition: 0.3s;
-}
+    <div class="dashboard-card luxury-card">
+        <div class="card-icon">Clientes</div>
+        <h3>Clientes</h3>
+        <p>{{ total_clientes }}</p>
+    </div>
 
-.card-parvati:hover {
-    transform: translateY(-5px);
-}
+    <div class="dashboard-card luxury-card">
+        <div class="card-icon">Proc.</div>
+        <h3>Procedimentos</h3>
+        <p>{{ total_procedimentos }}</p>
+    </div>
 
-/* Títulos */
-.titulo {
-    color: var(--marsala);
-    font-weight: 600;
-}
+    <div class="dashboard-card luxury-card">
+        <div class="card-icon">R$</div>
+        <h3>Faturamento</h3>
+        <p>R$ {{ faturamento }}</p>
+    </div>
 
-/* Destaque */
-.valor {
-    font-size: 26px;
-    font-weight: 600;
-    color: var(--dourado);
-}
+    <div class="dashboard-card luxury-card">
+        <div class="card-icon">Custo</div>
+        <h3>Custo Estimado</h3>
+        <p>R$ {{ custo_estimado }}</p>
+    </div>
 
-/* Frase */
-.frase {
-    background: linear-gradient(135deg, var(--marsala), #4b1d25);
-    color: white;
-    padding: 25px;
-    border-radius: 18px;
-    text-align: center;
-    font-size: 18px;
-}
-</style>
-
-<!-- Frase da Marca -->
-<div class="frase mb-4">
-    ✨ Beleza com consciência, elegância e naturalidade ✨
+    <div class="dashboard-card luxury-card">
+        <div class="card-icon">Lucro</div>
+        <h3>Lucro Estimado</h3>
+        <p>R$ {{ lucro_estimado }}</p>
+    </div>
 </div>
 
-<!-- Cards Resumo -->
-<div class="row g-4">
-
-    <!-- Agenda Hoje -->
-    <div class="col-md-3">
-        <div class="card-parvati">
-            <h6 class="titulo">📅 Agenda Hoje</h6>
-            <div class="valor">{{ total_hoje }}</div>
-            <small>Atendimentos</small>
-        </div>
+<div class="card hero-card" style="margin-top: 24px;">
+    <div>
+        <h3 class="hero-title">Painel Premium da Parvati Estetica</h3>
+        <p class="hero-text">Controle atendimentos, clientes, procedimentos, estoque, financeiro e resultado em um so lugar.</p>
     </div>
 
-    <!-- Clientes -->
-    <div class="col-md-3">
-        <div class="card-parvati">
-            <h6 class="titulo">👩‍🦰 Clientes</h6>
-            <div class="valor">{{ total_clientes }}</div>
-            <small>Cadastrados</small>
-        </div>
+    <div class="premium-actions">
+        <a href="{{ url_for('novo_agendamento') }}"><button class="btn-gold">Novo Agendamento</button></a>
+        <a href="{{ url_for('novo_cliente') }}"><button class="btn-outline">Novo Cliente</button></a>
+        <a href="{{ url_for('procedimentos') }}"><button class="btn-outline">Procedimentos</button></a>
+        <a href="{{ url_for('anamnese') }}"><button class="btn-outline">Nova Anamnese</button></a>
     </div>
-
-    <!-- Procedimentos -->
-    <div class="col-md-3">
-        <div class="card-parvati">
-            <h6 class="titulo">💉 Procedimentos</h6>
-            <div class="valor">{{ total_procedimentos }}</div>
-            <small>Realizados</small>
-        </div>
-    </div>
-
-    <!-- Faturamento -->
-    <div class="col-md-3">
-        <div class="card-parvati">
-            <h6 class="titulo">💰 Faturamento</h6>
-            <div class="valor">R$ {{ faturamento }}</div>
-            <small>Mês Atual</small>
-        </div>
-    </div>
-
 </div>
 
-<!-- Agenda do Dia -->
-<div class="card-parvati mt-5">
+<div class="table-card" style="margin-top: 24px;">
+    <h3 class="section-title">Atendimentos do Dia</h3>
 
-    <h5 class="titulo mb-3">⏰ Atendimentos de Hoje</h5>
-
-    {% if agenda_hoje %}
-
-        <table class="table table-sm">
-
+    <div class="table-wrapper">
+        <table>
             <thead>
                 <tr>
                     <th>Hora</th>
                     <th>Cliente</th>
                     <th>Procedimento</th>
                     <th>Profissional</th>
+                    <th>Lucro estimado</th>
+                    <th>Status</th>
                 </tr>
             </thead>
-
             <tbody>
-
-            {% for item in agenda_hoje %}
-
-            <tr>
-                <td>{{ item.hora }}</td>
-                <td>{{ item.cliente }}</td>
-                <td>{{ item.procedimento }}</td>
-                <td>{{ item.profissional }}</td>
-            </tr>
-
-            {% endfor %}
-
+                {% for a in agenda_hoje %}
+                <tr>
+                    <td>{{ a.hora }}</td>
+                    <td>{% if a.tipo == 'bloqueio' %}Bloqueio{% else %}{{ a.cliente }}{% endif %}</td>
+                    <td>{{ a.procedimento }}</td>
+                    <td>{{ a.profissional }}</td>
+                    <td>R$ {{ (a.valor or 0) - (a.custo_estimado or 0) }}</td>
+                    <td>
+                        {% if a.status == "confirmado" or a.status == "atendido" %}
+                            <span class="badge badge-success">{{ status_agendamento.get(a.status, a.status) }}</span>
+                        {% elif a.status == "cancelado" %}
+                            <span class="badge badge-danger">{{ status_agendamento.get(a.status, a.status) }}</span>
+                        {% elif a.status == "faltou" %}
+                            <span class="badge badge-warning">{{ status_agendamento.get(a.status, a.status) }}</span>
+                        {% else %}
+                            <span class="badge badge-info">{{ status_agendamento.get(a.status, a.status) }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6">Nenhum atendimento hoje.</td>
+                </tr>
+                {% endfor %}
             </tbody>
-
         </table>
-
-    {% else %}
-
-        <p class="text-muted">Nenhum atendimento hoje ✨</p>
-
-    {% endif %}
-
+    </div>
 </div>
 
 {% endblock %}

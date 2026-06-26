@@ -5,6 +5,13 @@ __pycache__/
 
 # Flask
 instance/
+*.log
 
 # PyCharm
 .idea/
+
+# Variáveis de ambiente — nunca subir para o Git
+.env
+.env.local
+
+.vercel

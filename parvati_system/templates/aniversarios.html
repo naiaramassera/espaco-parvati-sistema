@@ -1,15 +1,37 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+
 {% block content %}
 
-<h2>🎂 Aniversariantes do Mês</h2>
+<h2 class="section-title">Aniversariantes de hoje</h2>
+<p class="section-subtitle">Envie a mensagem com cupom diretamente pelo WhatsApp.</p>
 
-<ul>
-{% for c in clientes %}
-    <li>
-        {{ c.nome }} — {{ c.nascimento.strftime("%d/%m") }}
-        📱 {{ c.telefone }}
-    </li>
-{% endfor %}
-</ul>
+<div class="table-card">
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Cliente</th>
+                    <th>Telefone</th>
+                    <th>Cupom</th>
+                    <th>Acao</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cliente in aniversariantes %}
+                <tr>
+                    <td>{{ cliente.nome }}</td>
+                    <td>{{ cliente.telefone }}</td>
+                    <td>{{ cliente.cupom_aniversario or '-' }}</td>
+                    <td><a href="{{ url_for('enviar_aniversario_cliente', id=cliente.id) }}">Enviar WhatsApp</a></td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4">Nenhum aniversariante hoje.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 
 {% endblock %}

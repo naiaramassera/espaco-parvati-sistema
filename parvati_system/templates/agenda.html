@@ -2,42 +2,147 @@
 
 {% block content %}
 
-<h2>Agenda</h2>
+<div class="agenda-clean-header">
+    <div>
+        <h2 class="section-title">Agenda</h2>
+        <p class="section-subtitle">Atendimentos e bloqueios separados por profissional</p>
+    </div>
 
-<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    <div class="agenda-header-actions">
+        <a href="{{ url_for('novo_agendamento', data=data_texto) }}">
+            <button class="btn-gold">Novo Agendamento</button>
+        </a>
+        <a href="{{ url_for('novo_bloqueio', data=data_texto) }}">
+            <button class="btn-outline">Bloquear Horario</button>
+        </a>
+    </div>
+</div>
 
-<div id="calendar"></div>
+<div class="agenda-controls-card">
+    <div class="agenda-controls-left">
+        <a href="{{ url_for('agenda', data=data_anterior) }}"><button class="agenda-nav-btn">&lt;</button></a>
+        <a href="{{ url_for('agenda') }}"><button class="agenda-today-btn">Hoje</button></a>
+        <a href="{{ url_for('agenda', data=data_proxima) }}"><button class="agenda-nav-btn">&gt;</button></a>
+    </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
+    <form method="GET" class="agenda-date-form">
+        <label for="data">Data</label>
+        <input type="date" id="data" name="data" value="{{ data_texto }}">
+        <button type="submit" class="btn-outline">Abrir</button>
+    </form>
+</div>
 
-    var calendarEl = document.getElementById('calendar');
+<div class="agenda-metrics-grid">
+    <div class="agenda-metric-card">
+        <span>Agendados</span>
+        <strong>{{ metricas_agenda.total }}</strong>
+    </div>
+    <div class="agenda-metric-card">
+        <span>Confirmados</span>
+        <strong>{{ metricas_agenda.confirmados }}</strong>
+    </div>
+    <div class="agenda-metric-card">
+        <span>Atendidos</span>
+        <strong>{{ metricas_agenda.atendidos }}</strong>
+    </div>
+    <div class="agenda-metric-card">
+        <span>Faltas</span>
+        <strong>{{ metricas_agenda.faltas }}</strong>
+    </div>
+    <div class="agenda-metric-card">
+        <span>Bloqueios</span>
+        <strong>{{ metricas_agenda.bloqueios }}</strong>
+    </div>
+    <div class="agenda-metric-card">
+        <span>Horarios livres</span>
+        <strong>{{ metricas_agenda.livres }}</strong>
+    </div>
+</div>
 
-    var calendar = new FullCalendar.Calendar(calendarEl, {
+<div class="agenda-main-card">
+    <div class="agenda-day-title">
+        <h3>{{ data_agenda.strftime('%d/%m/%Y') }}</h3>
+    </div>
 
-        initialView: 'dayGridMonth',
-        locale: 'pt-br',
+    <div class="agenda-professional-wrapper">
+        <table class="agenda-professional-table">
+            <thead>
+                <tr>
+                    <th class="agenda-time-col">Horario</th>
+                    {% for profissional in profissionais %}
+                        <th>{{ profissional }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for horario in horarios %}
+                <tr>
+                    <td class="agenda-time-col">{{ horario }}</td>
+                    {% for profissional in profissionais %}
+                    <td class="agenda-slot">
+                        {% set atendimentos = agenda_por_profissional[profissional][horario] %}
 
-        headerToolbar: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek,timeGridDay'
-        },
+                        {% if atendimentos %}
+                            {% for item in atendimentos %}
+                            <div class="agenda-appointment status-{{ item.status|lower }} {% if item.tipo == 'bloqueio' %}agenda-blocked{% endif %}">
+                                <strong>{{ item.visivel_cliente }}</strong>
+                                <span>{{ item.visivel_procedimento }}</span>
+                                {% if item.visivel_valor is not none %}
+                                    <small>R$ {{ item.visivel_valor or 0 }} - {{ status_agendamento.get(item.status, item.status) }}</small>
+                                    <small>{{ item.duracao_minutos or 60 }} min{% if item.retorno_dias %} - retorno em {{ item.retorno_dias }} dias{% endif %}</small>
+                                {% else %}
+                                    <small>{{ status_agendamento.get(item.status, item.status) }}</small>
+                                {% endif %}
 
-        events: '/eventos',
+                                {% if item.visivel_detalhes %}
+                                    <div class="agenda-appointment-actions">
+                                        {% if item.tipo != 'bloqueio' %}
+                                            <a href="{{ url_for('enviar_confirmacao_agendamento', id=item.id) }}">WhatsApp</a>
+                                            <a href="{{ url_for('confirmar', id=item.id) }}">Confirmar</a>
+                                            <a href="{{ url_for('atendido', id=item.id) }}">Atendido</a>
+                                            <a href="{{ url_for('faltou', id=item.id) }}">Faltou</a>
+                                            <a href="{{ url_for('enviar_contrato_cliente', id=item.id) }}">Contrato</a>
+                                            {% if item.cliente_id and usuario_admin %}
+                                                <a href="{{ url_for('historico', id=item.cliente_id) }}">Historico</a>
+                                                <a href="{{ url_for('prontuario', id=item.cliente_id) }}">Prontuario</a>
+                                            {% endif %}
+                                        {% endif %}
+                                        <a href="{{ url_for('cancelar', id=item.id) }}">Liberar/Cancelar</a>
+                                    </div>
 
-        dateClick: function(info) {
-            window.location.href =
-              "/novo_agendamento?data=" + info.dateStr;
-        }
+                                    <form method="POST" action="{{ url_for('reagendar_agendamento', id=item.id) }}" class="agenda-reschedule-form">
+                                        <input type="date" name="data" value="{{ item.data }}" aria-label="Nova data">
+                                        <input type="time" name="hora" value="{{ item.hora }}" aria-label="Nova hora">
+                                        <select name="profissional" aria-label="Profissional">
+                                            {% for nome_profissional in profissionais %}
+                                                <option value="{{ nome_profissional }}" {% if item.profissional == nome_profissional %}selected{% endif %}>{{ nome_profissional }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="submit">Reagendar</button>
+                                    </form>
 
-    });
-
-    calendar.render();
-});
-</script>
+                                    <form method="POST" action="{{ url_for('salvar_observacoes_agendamento', id=item.id) }}" class="agenda-notes-form">
+                                        <textarea name="observacoes" rows="2" placeholder="Observacoes internas">{{ item.observacoes or '' }}</textarea>
+                                        <button type="submit">Salvar</button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <a class="agenda-empty-slot" href="{{ url_for('novo_agendamento', data=data_texto, hora=horario, profissional=profissional) }}">
+                                Livre
+                            </a>
+                            <a class="agenda-empty-block" href="{{ url_for('novo_bloqueio', data=data_texto, hora=horario, profissional=profissional) }}">
+                                Bloquear
+                            </a>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 
 {% endblock %}
-
-

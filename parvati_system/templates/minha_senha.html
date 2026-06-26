@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2 class="section-title">Alterar Senha</h2>
+<p class="section-subtitle">Use uma senha com pelo menos 8 caracteres.</p>
+
+<div class="form-card">
+    <form method="POST">
+        <label>Senha atual</label>
+        <input type="password" name="senha_atual" required>
+
+        <label>Nova senha</label>
+        <input type="password" name="nova_senha" minlength="8" required>
+
+        <label>Confirmar nova senha</label>
+        <input type="password" name="confirmar_senha" minlength="8" required>
+
+        <button type="submit" class="btn-gold">Alterar senha</button>
+    </form>
+</div>
+
+{% endblock %}

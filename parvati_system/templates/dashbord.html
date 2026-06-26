@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2 class="section-title">Dashboard</h2>
+<p class="section-subtitle">Resumo geral do sistema</p>
+
+<div class="cards-grid">
+    <div class="dashboard-card">
+        <h3>Clientes</h3>
+        <p>{{ clientes }}</p>
+    </div>
+
+    <div class="dashboard-card">
+        <h3>Agendamentos</h3>
+        <p>{{ agendamentos }}</p>
+    </div>
+
+    <div class="dashboard-card">
+        <h3>Faturamento</h3>
+        <p>R$ {{ faturamento }}</p>
+    </div>
+
+    <div class="dashboard-card">
+        <h3>Custo Estimado</h3>
+        <p>R$ {{ custo_estimado }}</p>
+    </div>
+
+    <div class="dashboard-card">
+        <h3>Lucro Estimado</h3>
+        <p>R$ {{ lucro_estimado }}</p>
+    </div>
+</div>
+
+<div class="premium-actions" style="margin-top: 24px;">
+    <a href="{{ url_for('agenda') }}"><button class="btn-gold">Ir para Agenda</button></a>
+    <a href="{{ url_for('procedimentos') }}"><button class="btn-outline">Procedimentos</button></a>
+    <a href="{{ url_for('financeiro') }}"><button class="btn-outline">Financeiro</button></a>
+</div>
+
+{% endblock %}

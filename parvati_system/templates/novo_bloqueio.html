@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2 class="section-title">Bloquear Horario</h2>
+<p class="section-subtitle">Use para intervalos, procedimentos internos, ausencia ou indisponibilidade.</p>
+
+<div class="form-card">
+    <form method="POST">
+        <label>Data</label>
+        <input type="date" name="data" value="{{ data or '' }}" required>
+
+        <label>Hora</label>
+        <input type="time" name="hora" value="{{ hora or '' }}" required>
+
+        <label>Profissional</label>
+        <select name="profissional">
+            {% for nome in profissionais %}
+                <option value="{{ nome }}" {% if profissional == nome %}selected{% endif %}>{{ nome }}</option>
+            {% endfor %}
+        </select>
+
+        <label>Motivo</label>
+        <input type="text" name="motivo" placeholder="Ex.: Almoco, curso, procedimento interno">
+
+        <label>Observacoes internas</label>
+        <textarea name="observacoes" rows="4" placeholder="Detalhes visiveis apenas para quem pode gerenciar este bloqueio"></textarea>
+
+        <button type="submit" class="btn-gold">Salvar bloqueio</button>
+    </form>
+</div>
+
+{% endblock %}

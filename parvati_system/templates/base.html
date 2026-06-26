@@ -2,228 +2,98 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Espaço Parvati</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parvati Estetica</title>
 
-    <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- FontAwesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-
-    <!-- Fonte -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-
-    <style>
-
-    /* 🎨 Paleta Parvati */
-    :root {
-        --marsala: #6D1F2B;
-        --vinho: #3A141C;
-        --offwhite: #FAF9F7;
-        --dourado: #D4AF37;
-        --cinza: #EDEDED;
-        --texto: #3B3B3B;
-    }
-
-    body {
-        margin: 0;
-        background: var(--offwhite);
-        font-family: 'Poppins', sans-serif;
-        color: var(--texto);
-    }
-
-    /* Sidebar */
-    .sidebar {
-        width: 250px;
-        height: 100vh;
-        background: linear-gradient(180deg, var(--marsala), var(--vinho));
-        position: fixed;
-        left: 0;
-        top: 0;
-        padding: 25px 15px;
-        color: white;
-        box-shadow: 3px 0 15px rgba(0,0,0,0.1);
-    }
-
-    .logo {
-        text-align: center;
-        font-size: 22px;
-        font-weight: 600;
-        margin-bottom: 40px;
-        color: var(--dourado);
-        line-height: 1.3;
-    }
-
-    .logo small {
-        font-size: 13px;
-        color: #f5e6b5;
-    }
-
-    /* Menu */
-    .menu a {
-        display: block;
-        padding: 12px 15px;
-        margin-bottom: 8px;
-        border-radius: 10px;
-        color: white;
-        text-decoration: none;
-        font-size: 15px;
-        transition: 0.3s;
-    }
-
-    .menu a i {
-        width: 25px;
-    }
-
-    .menu a:hover {
-        background: rgba(255,255,255,0.12);
-        color: var(--dourado);
-    }
-
-    .menu hr {
-        border-color: rgba(255,255,255,0.2);
-        margin: 20px 0;
-    }
-
-    /* Conteúdo principal */
-    .main {
-        margin-left: 250px;
-        padding: 30px;
-        min-height: 100vh;
-    }
-
-    /* Header */
-    .header {
-        background: white;
-        padding: 15px 25px;
-        border-radius: 15px;
-        box-shadow: 0 3px 12px rgba(0,0,0,0.06);
-        margin-bottom: 25px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .header h5 {
-        margin: 0;
-        color: var(--marsala);
-        font-weight: 500;
-    }
-
-    .header span {
-        color: var(--dourado);
-        font-size: 14px;
-    }
-
-    /* Botão sair */
-    .logout {
-        color: #f3d98c !important;
-        font-weight: 500;
-    }
-
-    .logout:hover {
-        color: white !important;
-    }
-
-    /* Cards */
-    .card {
-        border: none;
-        border-radius: 16px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-    }
-
-    /* Inputs */
-    input, select, textarea {
-        border-radius: 10px !important;
-        border: 1px solid #ddd !important;
-    }
-
-    /* Botões */
-    .btn-primary {
-        background: var(--marsala);
-        border: none;
-        border-radius: 10px;
-    }
-
-    .btn-primary:hover {
-        background: var(--vinho);
-    }
-
-    </style>
-
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 </head>
-
 <body>
 
-<!-- SIDEBAR -->
-<div class="sidebar">
+<div class="app-shell">
+    <header class="top-header">
+        <div class="top-header-left">
+            <div class="brand-wrap">
+                <img src="{{ url_for('static', filename='upload/logo.png') }}" alt="Logo" class="brand-logo">
+                <div class="brand-text">
+                    <h1>Parvati Estetica</h1>
+                    <span>Sistema de Agendamento</span>
+                </div>
+            </div>
+        </div>
 
-    <div class="logo text-center">
+        <nav class="top-nav">
+            <a href="{{ url_for('agenda') }}">Agenda</a>
+                {% if current_user.is_authenticated and current_user.perfil == 'admin' %}
+                    <a href="{{ url_for('central_ia') }}">IA/CRM/CRC</a>
+                    <a href="{{ url_for('financeiro') }}">Financeiro</a>
+                    <a href="{{ url_for('clientes') }}">Clientes</a>
+                    <a href="{{ url_for('procedimentos') }}">Procedimentos</a>
+                    <a href="{{ url_for('estoque') }}">Estoque</a>
+                    <a href="{{ url_for('campanhas') }}">Campanhas</a>
+                    <a href="{{ url_for('marketing_ia') }}">Marketing IA</a>
+                    <a href="{{ url_for('agente_comercial') }}">Leads</a>
+                {% endif %}
+        </nav>
 
-    <img src="{{ url_for('static', filename='logo.png') }}"
-         style="max-width:160px; margin-bottom:15px;">
+        <div class="user-box">
+            <div class="user-avatar">{{ current_user.nome[:1] if current_user.is_authenticated and current_user.nome else 'P' }}</div>
+            <div class="user-info">
+                <strong>Ola, {{ current_user.nome if current_user.is_authenticated else 'Parvati' }}</strong>
+                <span>{{ current_user.profissional if current_user.is_authenticated and current_user.profissional else 'Painel da estetica' }}</span>
+            </div>
+        </div>
+    </header>
 
-    <div style="color:#D4AF37; font-size:13px;">
-        Estética Premium
+    <div class="sub-header">
+        <div class="breadcrumb">
+            <span>Parvati Estetica</span>
+            <span>&gt;</span>
+            <span>Sistema Premium</span>
+        </div>
     </div>
 
-</div>
+    <div class="main-layout">
+        <aside class="sidebar-premium">
+            <div class="sidebar-card">
+                <a href="{{ url_for('home') }}" class="side-link">Dashboard</a>
+                <a href="{{ url_for('agenda') }}" class="side-link">Agenda</a>
+                {% if current_user.is_authenticated and current_user.perfil == 'admin' %}
+                    <a href="{{ url_for('central_ia') }}" class="side-link">Central IA/CRM/CRC</a>
+                    <a href="{{ url_for('clientes') }}" class="side-link">Clientes</a>
+                    <a href="{{ url_for('procedimentos') }}" class="side-link">Procedimentos</a>
+                    <a href="{{ url_for('anamnese') }}" class="side-link">Anamnese</a>
+                    <a href="{{ url_for('estoque') }}" class="side-link">Estoque</a>
+                    <a href="{{ url_for('financeiro') }}" class="side-link">Financeiro</a>
+                    <a href="{{ url_for('aniversarios') }}" class="side-link">Aniversarios</a>
+                    <a href="{{ url_for('campanhas') }}" class="side-link">Campanhas</a>
+                    <a href="{{ url_for('marketing_ia') }}" class="side-link">Marketing IA + Meta</a>
+                    <a href="{{ url_for('agente_comercial') }}" class="side-link">Agente Comercial</a>
+                    <a href="{{ url_for('funcionarias') }}" class="side-link">Funcionarias</a>
+                    <a href="{{ url_for('importar_clientes') }}" class="side-link">Importar Clientes</a>
+                {% endif %}
+                <a href="{{ url_for('minha_senha') }}" class="side-link">Alterar Senha</a>
+                <a href="{{ url_for('logout') }}" class="side-link side-exit">Sair</a>
+            </div>
+        </aside>
 
-    <div class="menu">
+        <main class="content-premium">
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="flash-stack">
+                        {% for message in messages %}
+                            <div class="flash-premium">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
 
-        <a href="/home">
-            <i class="fa-solid fa-house"></i> Dashboard
-        </a>
-
-        <a href="/agenda">
-            <i class="fa-solid fa-calendar-days"></i> Agenda
-        </a>
-
-        <a href="/clientes">
-            <i class="fa-solid fa-users"></i> Clientes
-        </a>
-
-        <a href="/anamnese">
-            <i class="fa-solid fa-file-medical"></i> Anamnese
-        </a>
-
-        <a href="/financeiro">
-            <i class="fa-solid fa-wallet"></i> Financeiro
-        </a>
-
-        <a href="/aniversarios">
-            <i class="fa-solid fa-cake-candles"></i> Aniversários
-        </a>
-
-        <hr>
-
-        <a href="/logout" class="logout">
-            <i class="fa-solid fa-right-from-bracket"></i> Sair
-        </a>
-
+            {% block content %}{% endblock %}
+        </main>
     </div>
-
-</div>
-
-<!-- CONTEÚDO -->
-<div class="main">
-
-    <!-- Header -->
-    <div class="header">
-
-        <h5>
-            Bem-vinda, {{ current_user.nome }}
-        </h5>
-
-        <span>
-            💎 Beleza com consciência, elegância e naturalidade
-        </span>
-
-    </div>
-
-    <!-- Conteúdo das páginas -->
-    {% block content %}{% endblock %}
-
 </div>
 
 </body>

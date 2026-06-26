@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contrato - Parvati Estetica</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <main class="panel-card" style="max-width: 860px; margin: 40px auto;">
+        <h1 class="section-title">Termo do Procedimento</h1>
+
+        <p><strong>Cliente:</strong> {{ agendamento.cliente }}</p>
+        <p><strong>Procedimento:</strong> {{ agendamento.procedimento }}</p>
+        <p><strong>Profissional:</strong> {{ agendamento.profissional }}</p>
+        <p><strong>Data e hora:</strong> {{ agendamento.data }} as {{ agendamento.hora }}</p>
+        <p><strong>Valor:</strong> R$ {{ agendamento.valor }}</p>
+
+        <hr style="margin: 22px 0;">
+
+        <p>
+            Declaro que recebi as orientacoes gerais sobre o procedimento, cuidados antes e depois do atendimento,
+            possiveis reacoes e necessidade de seguir corretamente as recomendacoes profissionais.
+        </p>
+        <p>
+            Confirmo que as informacoes de saude fornecidas na anamnese sao verdadeiras e autorizo a realizacao
+            do procedimento descrito acima.
+        </p>
+        <p>
+            Este termo serve como base operacional para envio e conferencia. Para validade juridica completa,
+            recomenda-se revisar o texto final com um profissional juridico.
+        </p>
+
+        <div class="anamnese-signature-box">
+            <div class="signature-line"><span>Assinatura da Cliente</span></div>
+            <div class="signature-line"><span>Assinatura da Profissional</span></div>
+        </div>
+    </main>
+</body>
+</html>

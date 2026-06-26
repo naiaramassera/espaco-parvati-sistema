@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="premium-page-header">
+    <div>
+        <h2 class="section-title">Calculadora de Procedimento</h2>
+        <p class="section-subtitle">{{ procedimento.nome }} - custo real por insumo usado</p>
+    </div>
+    <a href="{{ url_for('procedimentos') }}"><button class="btn-outline">Voltar</button></a>
+</div>
+
+<div class="financeiro-cards" style="margin-bottom: 22px;">
+    <div class="finance-card">
+        <span>Valor cobrado</span>
+        <strong>R$ {{ procedimento.valor_padrao or 0 }}</strong>
+    </div>
+    <div class="finance-card">
+        <span>Custo real</span>
+        <strong>R$ {{ total }}</strong>
+    </div>
+    <div class="finance-card">
+        <span>Lucro estimado</span>
+        <strong>R$ {{ lucro }}</strong>
+    </div>
+    <div class="finance-card">
+        <span>Insumos</span>
+        <strong>{{ insumos|length }}</strong>
+    </div>
+</div>
+
+<div class="financeiro-grid">
+    <div class="table-card">
+        <h3 class="form-section-title">Composicao do procedimento</h3>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Insumo</th>
+                        <th>Marca/Lote</th>
+                        <th>Quantidade usada</th>
+                        <th>Custo unitario</th>
+                        <th>Total</th>
+                        <th>Observacao</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for insumo in insumos %}
+                        {% set produto = produtos_por_id.get(insumo.produto_id) %}
+                        {% set custo_unitario = (produto.custo_unitario if produto and produto.custo_unitario is not none else insumo.custo_unitario_snapshot) or 0 %}
+                    <tr>
+                        <td>{{ produto.nome if produto else 'Produto removido' }}</td>
+                        <td>
+                            {% if produto %}
+                                {{ produto.marca or '-' }} / {{ produto.lote or '-' }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>{{ insumo.quantidade }} {{ produto.unidade if produto else '' }}</td>
+                        <td>R$ {{ custo_unitario }}</td>
+                        <td>R$ {{ (insumo.quantidade or 0) * custo_unitario }}</td>
+                        <td>{{ insumo.observacao or '-' }}</td>
+                        <td>
+                            <a href="{{ url_for('remover_insumo_procedimento', procedimento_id=procedimento.id, insumo_id=insumo.id) }}">Remover</a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7">Nenhum insumo cadastrado para este procedimento.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="form-card">
+        <h3>Adicionar insumo</h3>
+        <form method="POST">
+            <label>Produto do estoque</label>
+            <select name="produto_id" id="produto_id" required>
+                <option value="">Selecione</option>
+                {% for produto in produtos %}
+                    <option
+                        value="{{ produto.id }}"
+                        data-custo="{{ produto.custo_unitario or 0 }}"
+                        data-unidade="{{ produto.unidade or 'unidade' }}"
+                        data-estoque="{{ produto.quantidade or 0 }}"
+                    >
+                        {{ produto.categoria }} - {{ produto.nome }}{% if produto.marca %} - {{ produto.marca }}{% endif %}{% if produto.lote %} - lote {{ produto.lote }}{% endif %}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <div class="insumo-preview" id="insumo_preview">Selecione um produto para ver custo e estoque.</div>
+
+            <label>Quantidade usada no procedimento</label>
+            <input type="number" step="0.0001" name="quantidade" id="quantidade" required>
+
+            <label>Observacao</label>
+            <input type="text" name="observacao" placeholder="Ex.: por face, por seringa, por area">
+
+            <button type="submit" class="btn-gold">Adicionar ao calculo</button>
+        </form>
+    </div>
+</div>
+
+<script>
+const produtoSelect = document.getElementById("produto_id");
+const preview = document.getElementById("insumo_preview");
+
+produtoSelect.addEventListener("change", function () {
+    const selected = this.options[this.selectedIndex];
+    if (!selected.value) {
+        preview.textContent = "Selecione um produto para ver custo e estoque.";
+        return;
+    }
+
+    preview.textContent = `Custo unitario: R$ ${selected.dataset.custo || 0} | Estoque atual: ${selected.dataset.estoque || 0} ${selected.dataset.unidade || ""}`;
+});
+</script>
+
+{% endblock %}

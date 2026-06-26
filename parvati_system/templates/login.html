@@ -2,24 +2,33 @@
 
 {% block content %}
 
-<h2 style="text-align:center">Login do Sistema</h2>
+<div class="login-wrapper">
+    <div class="login-card">
 
-<form method="POST" class="login-box">
+        <div class="logo-box">
+            <img src="{{ url_for('static', filename='upload/logo.png') }}" alt="Logo Parvati Estetica" class="logo-img">
+        </div>
 
-    <input type="email"
-           name="email"
-           placeholder="Email"
-           required>
+        <h2>Bem-vinda</h2>
+        <p>Acesse o sistema da Parvati Estetica</p>
 
-    <input type="password"
-           name="senha"
-           placeholder="Senha"
-           required>
+        <form method="POST">
 
-    <button type="submit">
-        Entrar
-    </button>
+            <div>
+                <label for="email">Email</label>
+                <input type="email" name="email" id="email" placeholder="Digite seu email" required>
+            </div>
 
-</form>
+            <div>
+                <label for="senha">Senha</label>
+                <input type="password" name="senha" id="senha" placeholder="Digite sua senha" required>
+            </div>
+
+            <button type="submit">Entrar</button>
+
+        </form>
+
+    </div>
+</div>
 
 {% endblock %}

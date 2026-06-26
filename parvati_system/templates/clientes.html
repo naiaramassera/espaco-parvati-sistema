@@ -2,35 +2,42 @@
 
 {% block content %}
 
-<h2>Clientes</h2>
+<h2 class="section-title">Clientes</h2>
 
-<a href="/novo_cliente">
-    <button>Novo Cliente</button>
-</a>
+<div class="premium-actions" style="margin-bottom: 18px;">
+    <a href="{{ url_for('novo_cliente') }}"><button class="btn-gold">Novo Cliente</button></a>
+    <a href="{{ url_for('importar_clientes') }}"><button class="btn-outline">Importar clientes do Excel</button></a>
+</div>
 
-<table border="1">
-
-<tr>
-    <th>Nome</th>
-    <th>Telefone</th>
-    <th>Email</th>
-</tr>
-
-{% for c in clientes %}
-
-<tr>
-    <td>
-         <a href="/historico/{{ c.nome }}">
-             {{ c.nome }}
-         </a>
-    </td>
-
-    <td>{{ c.telefone }}</td>
-    <td>{{ c.email }}</td>
-</tr>
-
-{% endfor %}
-
-</table>
+<div class="table-card">
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Telefone</th>
+                    <th>Email</th>
+                    <th>Prontuario</th>
+                    <th>Anamnese</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cliente in clientes %}
+                <tr>
+                    <td><a href="{{ url_for('historico', id=cliente.id) }}">{{ cliente.nome }}</a></td>
+                    <td>{{ cliente.telefone }}</td>
+                    <td>{{ cliente.email }}</td>
+                    <td><a href="{{ url_for('prontuario', id=cliente.id) }}">Abrir</a></td>
+                    <td><a href="{{ url_for('enviar_anamnese_cliente', id=cliente.id) }}">Enviar</a></td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5">Nenhum cliente cadastrado.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 
 {% endblock %}

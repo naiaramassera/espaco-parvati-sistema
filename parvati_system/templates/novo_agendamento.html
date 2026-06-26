@@ -1,56 +1,104 @@
 {% extends 'base.html' %}
+
 {% block content %}
 
-<h2>Novo Agendamento</h2>
+<h2 class="section-title">Novo Agendamento</h2>
+<p class="section-subtitle">Preencha os dados do atendimento. Ao salvar, o WhatsApp de confirmacao sera aberto.</p>
 
-<div id="calendar"></div>
+<div class="form-card">
+    <form method="POST">
+        <label>Cliente</label>
+        <input type="text" name="cliente" required>
 
-<hr>
+        <label>Telefone</label>
+        <input type="text" name="telefone" required>
 
-<form method="POST">
+        <label>Data</label>
+        <input type="date" name="data" id="data" value="{{ data or '' }}" required>
 
-    <label>Cliente:</label>
-    <input type="text" name="cliente" required>
+        <label>Hora</label>
+        <input type="time" name="hora" value="{{ hora or '' }}" required>
 
-    <label>Telefone:</label>
-    <input type="text" name="telefone" required>
+        <label>Profissional</label>
+        <select name="profissional">
+            {% for nome in profissionais %}
+                <option value="{{ nome }}" {% if profissional == nome %}selected{% endif %}>{{ nome }}</option>
+            {% endfor %}
+        </select>
 
-    <label>Data:</label>
-    <input type="date" name="data" id="data" value="{{ data }}" required>
+        <label>Procedimento cadastrado</label>
+        <select name="procedimento_id" id="procedimento_id">
+            <option value="">Informar manualmente</option>
+            {% for item in procedimentos %}
+                <option
+                    value="{{ item.id }}"
+                    data-nome="{{ item.nome }}"
+                    data-valor="{{ item.valor_padrao or 0 }}"
+                    data-custo="{{ custos_reais.get(item.id, item.custo_estimado or 0) }}"
+                    data-duracao="{{ item.duracao_minutos or 60 }}"
+                    data-retorno="{{ item.retorno_dias or '' }}"
+                    data-orientacoes="{{ item.orientacoes or '' }}"
+                >
+                    {{ item.categoria or 'Geral' }} - {{ item.nome }}
+                </option>
+            {% endfor %}
+        </select>
 
-    <label>Hora:</label>
-    <input type="time" name="hora" required>
+        <label>Procedimento</label>
+        <input type="text" name="procedimento" id="procedimento" required>
 
-    <label>Profissional:</label>
-    <select name="profissional">
-        <option>Naiara</option>
-        <option>Polyana</option>
-        <option>Marina</option>
-        <option>Ana Claudia</option>
-        <option>Lizandra</option>
-    </select>
+        <div class="premium-form-grid">
+            <div>
+                <label>Valor</label>
+                <input type="number" step="0.01" name="valor" id="valor" required>
+            </div>
+            <div>
+                <label>Custo estimado</label>
+                <input type="number" step="0.01" name="custo_estimado" id="custo_estimado">
+            </div>
+            <div>
+                <label>Duracao em minutos</label>
+                <input type="number" name="duracao_minutos" id="duracao_minutos" value="60">
+            </div>
+            <div>
+                <label>Retorno em dias</label>
+                <input type="number" name="retorno_dias" id="retorno_dias">
+            </div>
+        </div>
 
-    <label>Procedimento:</label>
-    <input type="text" name="procedimento">
+        <label>Forma de pagamento</label>
+        <select name="pagamento">
+            <option>Pix</option>
+            <option>Cartao</option>
+            <option>Dinheiro</option>
+            <option>Transferencia</option>
+            <option>Boleto</option>
+        </select>
 
-    <button type="submit">Salvar Agendamento</button>
+        <label>Observacoes do atendimento</label>
+        <textarea name="observacoes" id="observacoes" rows="4" placeholder="Orientacoes, observacoes clinicas ou detalhes importantes"></textarea>
 
-</form>
+        <button type="submit" class="btn-gold">Salvar e enviar WhatsApp</button>
+    </form>
+</div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+document.getElementById("procedimento_id").addEventListener("change", function () {
+    const selected = this.options[this.selectedIndex];
+    if (!selected.value) {
+        return;
+    }
 
-    var calendarEl = document.getElementById('calendar');
+    document.getElementById("procedimento").value = selected.dataset.nome || "";
+    document.getElementById("valor").value = selected.dataset.valor || "";
+    document.getElementById("custo_estimado").value = selected.dataset.custo || "";
+    document.getElementById("duracao_minutos").value = selected.dataset.duracao || "60";
+    document.getElementById("retorno_dias").value = selected.dataset.retorno || "";
 
-    var calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-
-        dateClick: function(info) {
-            document.getElementById('data').value = info.dateStr;
-        }
-    });
-
-    calendar.render();
+    const orientacoes = selected.dataset.orientacoes || "";
+    if (orientacoes && !document.getElementById("observacoes").value) {
+        document.getElementById("observacoes").value = orientacoes;
+    }
 });
 </script>
 

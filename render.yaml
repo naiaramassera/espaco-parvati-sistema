@@ -1,0 +1,43 @@
+services:
+  - type: web
+    name: espacoparvati
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn "parvati_system.wsgi:app" --workers 2 --bind 0.0.0.0:$PORT --timeout 120
+    plan: free
+    envVars:
+      - key: PARVATI_SECRET_KEY
+        generateValue: true
+      - key: PARVATI_SECURE_COOKIES
+        value: "1"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: parvati-db
+          property: connectionString
+      # WhatsApp — preencha no painel do Render
+      - key: WHATSAPP_PROVIDER
+        value: ""
+      - key: ZAPI_INSTANCE
+        value: ""
+      - key: ZAPI_TOKEN
+        value: ""
+      - key: ZAPI_CLIENT_TOKEN
+        value: ""
+      # IA
+      - key: ANTHROPIC_API_KEY
+        value: ""
+      # Oráculos de Lemúria
+      - key: ORACULOS_PRECO_SESSAO
+        value: "220"
+      - key: ORACULOS_PRECO_EBOOK
+        value: "47"
+      - key: ORACULOS_LINK_SESSAO
+        value: ""
+      - key: ORACULOS_LINK_EBOOK
+        value: ""
+
+databases:
+  - name: parvati-db
+    plan: free
+    databaseName: parvati
+    user: parvati

@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="premium-page-header">
+    <div>
+        <h2 class="section-title">Estoque</h2>
+        <p class="section-subtitle">Produtos, descartaveis, EPIs e materiais usados na clinica</p>
+    </div>
+</div>
+
+<div class="financeiro-cards" style="margin-bottom: 22px;">
+    <div class="finance-card">
+        <span>Produtos filtrados</span>
+        <strong>{{ total_produtos }}</strong>
+    </div>
+    <div class="finance-card">
+        <span>Estoque baixo</span>
+        <strong>{{ baixo_estoque }}</strong>
+    </div>
+    <div class="finance-card">
+        <span>Vencendo em 30 dias</span>
+        <strong>{{ vencendo }}</strong>
+    </div>
+    <div class="finance-card">
+        <span>Categorias</span>
+        <strong>{{ categorias|length }}</strong>
+    </div>
+</div>
+
+<div class="panel-card" style="margin-bottom: 22px;">
+    <h3 class="form-section-title">Pesquisar produtos</h3>
+
+    <form method="GET">
+        <div class="premium-form-grid">
+            <div>
+                <label>Produto</label>
+                <input type="text" name="q" value="{{ busca }}" placeholder="Ex: luva, acido, gaze">
+            </div>
+            <div>
+                <label>Categoria</label>
+                <select name="categoria">
+                    <option value="">Todas</option>
+                    {% for categoria in categorias %}
+                        <option value="{{ categoria }}" {% if categoria == categoria_selecionada %}selected{% endif %}>{{ categoria }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label>Status</label>
+                <select name="status">
+                    <option value="">Todos</option>
+                    <option value="baixo" {% if status == 'baixo' %}selected{% endif %}>Somente estoque baixo</option>
+                </select>
+            </div>
+        </div>
+        <button type="submit" class="btn-gold">Pesquisar</button>
+        <a href="{{ url_for('estoque') }}"><button type="button" class="btn-outline">Limpar</button></a>
+    </form>
+</div>
+
+<div class="panel-card" style="margin-bottom: 22px;">
+    <h3 class="form-section-title">Cadastrar produto</h3>
+
+    <form method="POST">
+        <div class="premium-form-grid">
+            <div>
+                <label>Nome</label>
+                <input type="text" name="nome" required>
+            </div>
+            <div>
+                <label>Categoria</label>
+                <select name="categoria" required>
+                    <option>Biosseguranca</option>
+                    <option>EPI</option>
+                    <option>Descartaveis</option>
+                    <option>Limpeza de pele</option>
+                    <option>Peeling</option>
+                    <option>Dermocosmeticos</option>
+                    <option>Finalizacao</option>
+                    <option>Equipamentos</option>
+                    <option>Outros</option>
+                </select>
+            </div>
+            <div>
+                <label>Unidade</label>
+                <input type="text" name="unidade" placeholder="frasco, caixa, unidade, pacote">
+            </div>
+            <div>
+                <label>Marca</label>
+                <input type="text" name="marca">
+            </div>
+            <div>
+                <label>Lote</label>
+                <input type="text" name="lote">
+            </div>
+            <div>
+                <label>Custo unitario</label>
+                <input type="number" step="0.01" name="custo_unitario" value="0">
+            </div>
+            <div>
+                <label>Quantidade</label>
+                <input type="number" step="0.01" name="quantidade" value="0">
+            </div>
+            <div>
+                <label>Estoque minimo</label>
+                <input type="number" step="0.01" name="estoque_minimo" value="0">
+            </div>
+            <div>
+                <label>Validade</label>
+                <input type="date" name="validade">
+            </div>
+            <div>
+                <label>Fornecedor</label>
+                <input type="text" name="fornecedor">
+            </div>
+            <div>
+                <label>Registro/Processo Anvisa</label>
+                <input type="text" name="registro_anvisa" placeholder="Quando aplicavel">
+            </div>
+            <div>
+                <label>Local de armazenamento</label>
+                <input type="text" name="local_armazenamento" placeholder="Armario, sala, geladeira...">
+            </div>
+            <div class="full-width">
+                <label>Observacao</label>
+                <textarea name="observacao"></textarea>
+            </div>
+        </div>
+        <button type="submit" class="btn-gold">Cadastrar produto</button>
+    </form>
+</div>
+
+<div class="table-card">
+    <h3 class="form-section-title">Produtos em estoque</h3>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Produto</th>
+                    <th>Categoria</th>
+                    <th>Qtd.</th>
+                    <th>Lote</th>
+                    <th>Custo un.</th>
+                    <th>Min.</th>
+                    <th>Validade</th>
+                    <th>Anvisa</th>
+                    <th>Movimentar</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for produto in produtos %}
+                <tr>
+                    <td>
+                        <strong>{{ produto.nome }}</strong><br>
+                        <small>{{ produto.marca or '' }} {{ produto.fornecedor or '' }} {{ produto.local_armazenamento or '' }}</small>
+                    </td>
+                    <td>{{ produto.categoria }}</td>
+                    <td>
+                        {% if (produto.quantidade or 0) <= (produto.estoque_minimo or 0) %}
+                            <span class="badge badge-warning">{{ produto.quantidade or 0 }} {{ produto.unidade }}</span>
+                        {% else %}
+                            {{ produto.quantidade or 0 }} {{ produto.unidade }}
+                        {% endif %}
+                    </td>
+                    <td>{{ produto.lote or '-' }}</td>
+                    <td>R$ {{ produto.custo_unitario or 0 }}</td>
+                    <td>{{ produto.estoque_minimo or 0 }}</td>
+                    <td>{{ produto.validade or '-' }}</td>
+                    <td>{{ produto.registro_anvisa or '-' }}</td>
+                    <td>
+                        <form method="POST" action="{{ url_for('movimentar_estoque', id=produto.id) }}" class="estoque-move-form">
+                            <select name="tipo">
+                                <option value="entrada">Entrada</option>
+                                <option value="saida">Saida</option>
+                            </select>
+                            <input type="number" step="0.01" name="quantidade" placeholder="Qtd." required>
+                            <input type="text" name="motivo" placeholder="Motivo">
+                            <button type="submit" class="btn-outline">Salvar</button>
+                        </form>
+                    </td>
+                    <td><a href="{{ url_for('desativar_produto', id=produto.id) }}">Remover</a></td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="10">Nenhum produto encontrado.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="table-card" style="margin-top: 22px;">
+    <h3 class="form-section-title">Ultimas movimentacoes</h3>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Produto ID</th>
+                    <th>Tipo</th>
+                    <th>Quantidade</th>
+                    <th>Motivo</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for mov in movimentacoes %}
+                <tr>
+                    <td>{{ mov.data.strftime('%d/%m/%Y %H:%M') if mov.data else '-' }}</td>
+                    <td>{{ mov.produto_id }}</td>
+                    <td>{{ mov.tipo }}</td>
+                    <td>{{ mov.quantidade }}</td>
+                    <td>{{ mov.motivo or '-' }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5">Nenhuma movimentacao registrada.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

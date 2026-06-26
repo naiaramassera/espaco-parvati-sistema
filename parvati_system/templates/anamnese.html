@@ -2,52 +2,136 @@
 
 {% block content %}
 
-<h2>Anamnese do Cliente</h2>
+<div class="premium-page-header">
+    <div>
+        <h2 class="section-title">Anamnese Estética</h2>
+        <p class="section-subtitle">Registro clínico e avaliação inicial da cliente</p>
+    </div>
+</div>
 
-<form method="POST" class="form-box">
+<div class="anamnese-layout">
 
-    <label>Nome do Cliente</label>
-    <input type="text" name="cliente" required>
+    <aside class="anamnese-side">
+        <div class="panel-card anamnese-menu-card">
+            <h3 class="anamnese-side-title">Orientações</h3>
 
-    <label>Telefone</label>
-    <input type="text" name="telefone" required>
+            <div class="anamnese-side-links">
+                <a href="#" class="anamnese-side-link">Botox</a>
+                <a href="#" class="anamnese-side-link">Preenchimento</a>
+                <a href="#" class="anamnese-side-link">Lavieen</a>
+                <a href="#" class="anamnese-side-link">Criolipólise</a>
+                <a href="#" class="anamnese-side-link">Hidrolipo</a>
+            </div>
 
-    <label>Idade</label>
-    <input type="text" name="idade">
+            <button type="submit" form="form-anamnese" class="btn-gold anamnese-save-btn">
+                Salvar Anamnese
+            </button>
+        </div>
+    </aside>
 
-    <label>Sexo</label>
-    <select name="sexo">
-        <option>Feminino</option>
-        <option>Masculino</option>
-        <option>Outro</option>
-    </select>
+    <section class="anamnese-main">
 
-    <label>Possui alguma doença?</label>
-    <select name="doenca">
-        <option>Não</option>
-        <option>Sim</option>
-    </select>
+        <div class="panel-card anamnese-top-card">
+            <div>
+                <h3 class="anamnese-client-title">Ficha da Cliente</h3>
+                <p class="anamnese-client-subtitle">Selecione a cliente e preencha a avaliação com cuidado</p>
+            </div>
+        </div>
 
-    <label>Usa medicação contínua?</label>
-    <select name="medicacao">
-        <option>Não</option>
-        <option>Sim</option>
-    </select>
+        <form id="form-anamnese" method="POST" class="panel-card anamnese-form-card">
 
-    <label>Alergias</label>
-    <textarea name="alergias"></textarea>
+            <div class="form-section">
+                <h3 class="form-section-title">Informações Pessoais</h3>
 
-    <label>Observações</label>
-    <textarea name="observacoes"></textarea>
+                <div class="premium-form-grid">
+                    <div class="full-width">
+                        <label for="cliente_id">Cliente</label>
+                        <select name="cliente_id" id="cliente_id" required>
+                            <option value="">Selecione a cliente</option>
+                            {% for cliente in clientes %}
+                                <option value="{{ cliente.id }}">{{ cliente.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
-    <label>Procedimento</label>
-    <input type="text" name="procedimento">
+                    <div class="full-width">
+                        <label for="objetivo">Qual é seu principal objetivo estético?</label>
+                        <input type="text" id="objetivo" name="objetivo" placeholder="Ex: melhorar textura da pele, reduzir flacidez, harmonização...">
+                    </div>
 
-    <label>Data</label>
-    <input type="date" name="data">
+                    <div>
+                        <label for="tipo_pele">Tipo de pele</label>
+                        <input type="text" id="tipo_pele" name="tipo_pele" placeholder="Ex: oleosa, mista, seca">
+                    </div>
 
-    <button type="submit">Salvar Anamnese</button>
+                    <div>
+                        <label for="sensibilidade">Sensibilidade</label>
+                        <input type="text" id="sensibilidade" name="sensibilidade" placeholder="Ex: sensível, moderada">
+                    </div>
+                </div>
+            </div>
 
-</form>
+            <div class="form-section">
+                <h3 class="form-section-title">Histórico de Saúde</h3>
+
+                <div class="premium-form-grid">
+                    <div>
+                        <label for="doencas">Doenças preexistentes</label>
+                        <textarea id="doencas" name="doencas" placeholder="Descreva doenças ou condições relevantes"></textarea>
+                    </div>
+
+                    <div>
+                        <label for="medicamentos">Uso de medicamentos</label>
+                        <textarea id="medicamentos" name="medicamentos" placeholder="Medicamentos em uso atualmente"></textarea>
+                    </div>
+
+                    <div class="full-width">
+                        <label for="alergias">Alergias</label>
+                        <textarea id="alergias" name="alergias" placeholder="Informe alergias a produtos, medicamentos ou ativos"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="form-section-title">Procedimentos e Avaliação</h3>
+
+                <div class="premium-form-grid">
+                    <div class="full-width">
+                        <label for="procedimentos">Procedimentos anteriores</label>
+                        <textarea id="procedimentos" name="procedimentos" placeholder="Quais procedimentos a cliente já realizou?"></textarea>
+                    </div>
+
+                    <div>
+                        <label for="avaliacao">Avaliação</label>
+                        <textarea id="avaliacao" name="avaliacao" placeholder="Descreva sua avaliação clínica/estética"></textarea>
+                    </div>
+
+                    <div>
+                        <label for="plano">Plano de tratamento</label>
+                        <textarea id="plano" name="plano" placeholder="Descreva o plano sugerido"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="anamnese-alert">
+                <strong>Atenção:</strong> confirme todas as informações antes de salvar a anamnese.
+            </div>
+
+            <div class="anamnese-signature-box">
+                <div class="signature-line">
+                    <span>Assinatura da Cliente</span>
+                </div>
+                <div class="signature-line">
+                    <span>Assinatura da Profissional</span>
+                </div>
+            </div>
+
+            <div class="anamnese-actions">
+                <button type="submit" class="btn-gold">Salvar Anamnese</button>
+            </div>
+
+        </form>
+    </section>
+</div>
 
 {% endblock %}

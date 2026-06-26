@@ -1,511 +1,253 @@
-from flask import Flask, render_template, redirect, url_for, request
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user
+import os
 
-import urllib.parse
-from datetime import date
+from flask import Flask
+from flask_login import LoginManager
+from sqlalchemy import text
+from werkzeug.security import check_password_hash, generate_password_hash
+from parvati_system.models import db, User, ProdutoEstoque, Agenda, Cliente, ProcedimentoCatalogo, ProcedimentoInsumo
+
+app = Flask(__name__)
+
+PROFISSIONAIS = ["Polyana", "Ana Claudia", "Lizandra", "Naiara"]
 
 CORES_PROFISSIONAIS = {
     "Naiara": "#7B2CBF",      # Roxo
-    "Marina": "#1E90FF",      # Azul
     "Polyana": "#2E8B57",     # Verde
     "Ana Claudia": "#FF8C00",# Laranja
     "Lizandra": "#DAA520"    # Dourado
 }
 
 # CONFIG
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'parvati-secret'
-app.config['SQLALCHEMY_DATABASE_URI'] = ('sqlite:///parvati.db')
 
-db = SQLAlchemy(app)
+app.config["SECRET_KEY"] = os.environ.get("PARVATI_SECRET_KEY", "parvati-secret-local")
 
-login_manager = LoginManager(app)
-login_manager.login_view = 'login'
-
-
-# MODELS
-class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    nome = db.Column(db.String(100))
-    email = db.Column(db.String(100), unique=True)
-    senha = db.Column(db.String(100))
-
-
-class Cliente(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    nome = db.Column(db.String(100))
-    telefone = db.Column(db.String(20))
-    email = db.Column(db.String(100))
-    observacao = db.Column(db.Text)
-    data_nascimento = db.Column(db.Date)
-    nascimento = db.Column(db.Date)
+_db_url = os.environ.get("DATABASE_URL", "sqlite:///parvati.db")
+# Render.com entrega "postgres://..." mas SQLAlchemy 1.4+ exige "postgresql://"
+if _db_url.startswith("postgres://"):
+    _db_url = _db_url.replace("postgres://", "postgresql://", 1)
+app.config["SQLALCHEMY_DATABASE_URI"] = _db_url
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+app.config["REMEMBER_COOKIE_HTTPONLY"] = True
+if os.environ.get("PARVATI_SECURE_COOKIES") == "1":
+    app.config["SESSION_COOKIE_SECURE"] = True
+    app.config["REMEMBER_COOKIE_SECURE"] = True
 
 
+db.init_app(app)
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = "login"
 
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-class Agenda(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-
-    telefone = db.Column(db.String(20))
-    valor = db.Column(db.Float, nullable=True)
-
-    data = db.Column(db.String(10))   # 14/02/2026
-    hora = db.Column(db.String(5))    # 14:00
-
-    cliente = db.Column(db.String(100))
-    profissional = db.Column(db.String(50))
-    procedimento = db.Column(db.String(100))
-
-
-    status = db.Column(db.String(20), default='Agendado')
-
-class Anamnese(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-
-    cliente = db.Column(db.String(100))
-    telefone = db.Column(db.String(30))
-
-    idade = db.Column(db.String(10))
-    sexo = db.Column(db.String(20))
-
-    possui_doenca = db.Column(db.String(5))
-    usa_medicacao = db.Column(db.String(5))
-
-    alergias = db.Column(db.Text)
-    observacoes = db.Column(db.Text)
-
-    procedimento = db.Column(db.String(100))
-    data = db.Column(db.String(20))
-
-
-# ROUTES
-@app.route('/')
-@app.route("/home")
-@login_required
-def home():
-
-    hoje = date.today().strftime('%Y-%m-%d')
-
-    total_hoje = Agenda.query.filter_by(data=hoje).count()
-
-    total_clientes = Cliente.query.count()
-
-    total_procedimentos = Agenda.query.count()
-
-    faturamento = db.session.query(
-        db.func.sum(Agenda.valor)
-    ).scalar() or 0
-
-    agenda_hoje = Agenda.query.filter_by(data=hoje).all()
-
-    return render_template(
-        'home.html',
-        total_hoje=total_hoje,
-        total_clientes=total_clientes,
-        total_procedimentos=total_procedimentos,
-        faturamento=faturamento,
-        agenda_hoje=agenda_hoje
-    )
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-
-    if request.method == 'POST':
-
-        user = User.query.filter_by(
-            email=request.form['email']
-        ).first()
-
-        if user and user.senha == request.form['senha']:
-            login_user(user)
-            return redirect(url_for('agenda'))
-
-    return render_template('login.html')
-
-
-@app.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    return redirect(url_for('home'))
-
-
-@app.route('/agenda', methods=['GET', 'POST'])
-@login_required
-def agenda():
-
-    if request.method == 'POST':
-
-        novo = Agenda(
-            data=request.form['data'],
-            hora=request.form['hora'],
-            cliente=request.form['cliente'],
-            profissional=request.form['profissional'],
-            procedimento=request.form['procedimento']
-        )
-
-        db.session.add(novo)
-        db.session.commit()
-
-        mensagem = f"""
-                        Olá {novo.cliente} 💖
-
-                        Seu atendimento foi agendado com sucesso!
-
-                        📅 Data: {novo.data}
-                        ⏰ Hora: {novo.hora}
-                        💆‍♀️ Procedimento: {novo.procedimento}
-                        👩‍⚕️ Profissional: {novo.profissional}
-
-                        Espaço Parvati ✨
-                        Beleza com consciência, elegância e naturalidade.
-                        """
-
-        texto = urllib.parse.quote(mensagem)
-
-        telefone = novo.telefone.strip()
-
-        link_whatsapp = f"https://wa.me/55{telefone}?text={texto}"
-
-        return redirect(link_whatsapp)
-
-    lista = Agenda.query.filter(
-        Agenda.status.in_(['Agendado', 'Confirmado', 'Atendido', 'Faltou'])
-    ).order_by(
-        Agenda.data,
-        Agenda.hora
-    ).all()
-
-    return render_template('agenda.html', lista=lista)
-
-
-@app.route('/cancelar/<int:id>')
-@login_required
-def cancelar(id):
-
-    ag = Agenda.query.get(id)
-
-    if ag:
-        ag.status = 'Cancelado'
-        db.session.commit()
-
-    return redirect(url_for('agenda'))
-
-@app.route('/confirmar/<int:id>')
-@login_required
-def confirmar(id):
-
-    ag = Agenda.query.get(id)
-
-    if ag:
-        ag.status = 'Confirmado'
-        db.session.commit()
-
-    return redirect(url_for('agenda'))
-
-
-@app.route('/atendido/<int:id>')
-@login_required
-def atendido(id):
-
-    ag = Agenda.query.get(id)
-
-    if ag:
-        ag.status = 'Atendido'
-        db.session.commit()
-
-    return redirect(url_for('agenda'))
-
-
-@app.route('/faltou/<int:id>')
-@login_required
-def faltou(id):
-
-    ag = Agenda.query.get(id)
-
-    if ag:
-        ag.status = 'Faltou'
-        db.session.commit()
-
-    return redirect(url_for('agenda'))
-
-
-import urllib.parse
-
-@app.route('/novo_agendamento', methods=['GET', 'POST'])
-@login_required
-def novo_agendamento():
-
-    data_selecionada = request.args.get('data')
-
-    if request.method == 'POST':
-
-        novo = Agenda(
-            telefone=request.form['telefone'],
-            data=request.form['data'],
-            hora=request.form['hora'],
-            cliente=request.form['cliente'],
-            profissional=request.form['profissional'],
-            procedimento=request.form['procedimento']
-        )
-
-        db.session.add(novo)
-        db.session.commit()
-
-        # ===== WHATSAPP =====
-
-        mensagem = f"""
-Olá {novo.cliente} 💖
-
-Seu atendimento no Espaço Parvati foi confirmado!
-
-📅 Data: {novo.data}
-⏰ Hora: {novo.hora}
-💆 Procedimento: {novo.procedimento}
-👩 Profissional: {novo.profissional}
-
-Te aguardamos com carinho ✨
-"""
-
-        texto = urllib.parse.quote(mensagem)
-
-        telefone = novo.telefone.strip().replace(" ", "").replace("-", "")
-
-        link = f"https://wa.me/55{telefone}?text={texto}"
-
-        return redirect(link)
-
-    return render_template(
-        'novo_agendamento.html',
-        data=data_selecionada
-    )
-
-@app.route('/clientes')
-@login_required
-def clientes():
-    lista = Cliente.query.all()
-    return render_template('clientes.html', clientes=lista)
-
-from datetime import datetime
-
-@app.route('/anamnese', methods=['GET', 'POST'])
-@login_required
-def anamnese():
-
-    if request.method == 'POST':
-
-        nova = Anamnese(
-
-            cliente=request.form['cliente'],
-            telefone=request.form['telefone'],
-
-            idade=request.form['idade'],
-            sexo=request.form['sexo'],
-
-            possui_doenca=request.form['doenca'],
-            usa_medicacao=request.form['medicacao'],
-
-            alergias=request.form['alergias'],
-            observacoes=request.form['observacoes'],
-
-            procedimento=request.form['procedimento'],
-            data=request.form['data']
-        )
-
-        db.session.add(nova)
-        db.session.commit()
-
-        return redirect(url_for('lista_anamnese'))
-
-    return render_template('anamnese.html')
-
-@app.route('/anamnese_cliente', methods=['GET', 'POST'])
-def anamnese_cliente():
-
-    if request.method == 'POST':
-
-        nova = Anamnese(
-
-            cliente=request.form['cliente'],
-            telefone=request.form['telefone'],
-
-            idade=request.form['idade'],
-            sexo=request.form['sexo'],
-
-            possui_doenca=request.form['doenca'],
-            usa_medicacao=request.form['medicacao'],
-
-            alergias=request.form['alergias'],
-            observacoes=request.form['observacoes'],
-
-            procedimento=request.form['procedimento'],
-            data=request.form['data']
-        )
-
-        db.session.add(nova)
-        db.session.commit()
-
-        return render_template('obrigado.html')
-
-    return render_template('anamnese_cliente.html')
-
-@app.route('/lista_anamnese')
-@login_required
-def lista_anamnese():
-
-    lista = Anamnese.query.order_by(Anamnese.data.desc()).all()
-
-    return render_template('lista_anamnese.html', lista=lista)
-
-@app.route('/ver_anamnese/<int:id>')
-@login_required
-def ver_anamnese(id):
-
-    item = Anamnese.query.get(id)
-
-    return render_template('ver_anamnese.html', item=item)
-
-@app.route('/novo_cliente', methods=['GET', 'POST'])
-@login_required
-def novo_cliente():
-
-    if request.method == 'POST':
-
-        from datetime import datetime
-
-        cliente = Cliente(
-            nome=request.form['nome'],
-            telefone=request.form['telefone'],
-            email=request.form['email'],
-            observacao=request.form['observacao'],
-            nascimento=datetime.strptime(
-                request.form['nascimento'],
-                "%Y-%m-%d"
-            ) if request.form['nascimento'] else None
-        )
-
-        db.session.add(cliente)
-        db.session.commit()
-
-        return redirect(url_for('clientes'))
-
-    return render_template('novo_cliente.html')
-
-@app.route('/buscar_cliente')
-def buscar_cliente():
-    nome = request.args.get('nome')
-
-    cliente = Cliente.query.filter_by(nome=nome).first()
-
-    if cliente:
-        return {
-            "telefone": cliente.telefone,
-            "email": cliente.email,
-            "observacao": cliente.observacao
+# importar rotas
+from parvati_system import routes
+
+def garantir_colunas():
+    colunas = {
+        "financeiro": {
+            "vencimento": "VARCHAR(20)",
+            "boleto_status": "VARCHAR(30) DEFAULT 'nao_gerado'",
+            "boleto_link": "VARCHAR(300)",
+            "linha_digitavel": "VARCHAR(200)",
+            "nosso_numero": "VARCHAR(80)",
+            "integracao_boleto": "VARCHAR(50) DEFAULT 'manual'",
+        },
+        "disparo_campanha": {
+            "canal": "VARCHAR(30) DEFAULT 'whatsapp'",
+            "link_whatsapp": "VARCHAR(500)",
+            "mensagem": "TEXT",
+        },
+        "agenda": {
+            "cliente_id": "INTEGER",
+            "procedimento_id": "INTEGER",
+            "custo_estimado": "FLOAT",
+            "duracao_minutos": "INTEGER DEFAULT 60",
+            "retorno_dias": "INTEGER",
+            "observacoes": "TEXT",
+            "tipo": "VARCHAR(20) DEFAULT 'atendimento'",
+            "criado_por_id": "INTEGER",
+        },
+        "user": {
+            "perfil": "VARCHAR(30) DEFAULT 'profissional'",
+            "profissional": "VARCHAR(50)",
+            "ativo": "BOOLEAN DEFAULT 1",
+        },
+        "produto_estoque": {
+            "marca": "VARCHAR(100)",
+            "lote": "VARCHAR(80)",
+            "custo_unitario": "FLOAT DEFAULT 0",
+        },
+    }
+
+    for tabela, novas_colunas in colunas.items():
+        existentes = {
+            coluna[1]
+            for coluna in db.session.execute(text(f"PRAGMA table_info({tabela})")).fetchall()
         }
 
-    return {}
+        for nome, tipo in novas_colunas.items():
+            if nome not in existentes:
+                db.session.execute(text(f"ALTER TABLE {tabela} ADD COLUMN {nome} {tipo}"))
 
-@app.route('/historico/<nome>')
-@login_required
-def historico(nome):
+    db.session.commit()
 
-    agendamentos = Agenda.query.filter_by(cliente=nome).all()
-
-    cliente = Cliente.query.filter_by(nome=nome).first()
-
-    return render_template(
-        'historico.html',
-        agendamentos=agendamentos,
-        cliente=cliente
-    )
-
-@app.route('/disparar_aniversarios')
-@login_required
-def disparar_aniversarios():
-
-    hoje = date.today()
-
-    clientes = Cliente.query.filter(
-        db.extract('month', Cliente.nascimento) == hoje.month,
-        db.extract('day', Cliente.nascimento) == hoje.day
-    ).all()
-
-    if not clientes:
-        return "Nenhum aniversariante hoje 🎂"
-
-    links = []
-
-    for c in clientes:
-
-        msg = f"""
-Olá {c.nome} 💖
-
-O Espaço Parvati deseja um feliz aniversário! 🎉✨
-
-Hoje temos um presente especial pra você 🎁
-
-Agende seu horário com desconto 💆‍♀️🌸
-"""
-
-        texto = urllib.parse.quote(msg)
-
-        telefone = c.telefone.replace(" ", "").replace("-", "")
-
-        link = f"https://wa.me/55{telefone}?text={texto}"
-
-        links.append(link)
-
-    return "<br>".join([
-        f'<a href="{l}" target="_blank">Enviar WhatsApp</a>'
-        for l in links
-    ])
-
-@app.route('/eventos')
-@login_required
-def eventos():
-
-    agendamentos = Agenda.query.all()
-
-    eventos = []
-
-    for a in agendamentos:
-
-        cor = CORES_PROFISSIONAIS.get(
-            a.profissional,
-            "#B22222"  # cor padrão
-        )
-
-        eventos.append({
-            "title": f"{a.procedimento} - {a.cliente}",
-            "start": f"{a.data}T{a.hora}",
-            "color": cor
-        })
-
-    return eventos
+    normalizar_agendamentos_existentes()
+    normalizar_usuarios_existentes()
 
 
-# MAIN
-if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
+def normalizar_agendamentos_existentes():
+    mapa_status = {
+        "agendado": "agendado",
+        "Agendado": "agendado",
+        "confirmado": "confirmado",
+        "Confirmado": "confirmado",
+        "atendido": "atendido",
+        "Atendido": "atendido",
+        "cancelado": "cancelado",
+        "Cancelado": "cancelado",
+        "faltou": "faltou",
+        "Faltou": "faltou",
+    }
 
-        # VERIFICAR SE JÁ EXISTE ADMIN
-        admin = User.query.filter_by(email='naiara@espacoparvati.com').first()
+    alterou = False
 
-        if not admin:
-            admin = User(
-                nome='Naiara Massera',
-                email='naiara@espacoparvati.com',
-                senha='Parvati@2026'
-            )
-            db.session.add(admin)
-            db.session.commit()
-            print('✅ Admin Naiara criado com sucesso!')
+    for agendamento in Agenda.query.all():
+        if not agendamento.tipo:
+            agendamento.tipo = "atendimento"
+            alterou = True
 
-    app.run(debug=True)
+        status_normalizado = mapa_status.get(agendamento.status, "agendado")
+        if agendamento.status != status_normalizado:
+            agendamento.status = status_normalizado
+            alterou = True
+
+        if not agendamento.cliente_id:
+            cliente = None
+            if agendamento.telefone:
+                cliente = Cliente.query.filter_by(telefone=agendamento.telefone).first()
+
+            if not cliente and agendamento.cliente:
+                cliente = Cliente.query.filter_by(nome=agendamento.cliente).first()
+
+            if cliente:
+                agendamento.cliente_id = cliente.id
+                alterou = True
+
+    if alterou:
+        db.session.commit()
+
+
+def normalizar_usuarios_existentes():
+    alterou = False
+
+    admin = User.query.filter_by(email="naiara@espacoparvati.com").first()
+    if admin:
+        if admin.perfil != "admin":
+            admin.perfil = "admin"
+            alterou = True
+        if not admin.profissional:
+            admin.profissional = "Naiara"
+            alterou = True
+        if admin.ativo is None:
+            admin.ativo = True
+            alterou = True
+        if os.environ.get("VERCEL") and not check_password_hash(admin.senha or "", "Parvati@2026"):
+            admin.senha = generate_password_hash("Parvati@2026")
+            alterou = True
+
+    if alterou:
+        db.session.commit()
+
+
+def popular_estoque_inicial():
+    if ProdutoEstoque.query.first():
+        return
+
+    produtos = [
+        ("Alcool 70%", "Biosseguranca", "frasco", 0, 3),
+        ("Clorexidina", "Biosseguranca", "frasco", 0, 2),
+        ("Desinfetante hospitalar", "Biosseguranca", "frasco", 0, 2),
+        ("Sabonete antisseptico", "Biosseguranca", "frasco", 0, 2),
+        ("Luva nitrilica", "EPI", "caixa", 0, 3),
+        ("Luva de procedimento", "EPI", "caixa", 0, 3),
+        ("Mascara descartavel", "EPI", "caixa", 0, 2),
+        ("Touca descartavel", "EPI", "pacote", 0, 2),
+        ("Avental descartavel", "EPI", "unidade", 0, 10),
+        ("Gaze esteril", "Descartaveis", "pacote", 0, 5),
+        ("Algodao", "Descartaveis", "pacote", 0, 3),
+        ("Lenco descartavel", "Descartaveis", "pacote", 0, 3),
+        ("Espatula descartavel", "Descartaveis", "pacote", 0, 2),
+        ("Seringa descartavel", "Descartaveis", "unidade", 0, 20),
+        ("Agulha descartavel", "Descartaveis", "unidade", 0, 20),
+        ("Coletor perfurocortante", "Biosseguranca", "unidade", 0, 1),
+        ("Gel de limpeza facial", "Limpeza de pele", "frasco", 0, 2),
+        ("Demaquilante", "Limpeza de pele", "frasco", 0, 1),
+        ("Esfoliante facial", "Limpeza de pele", "frasco", 0, 1),
+        ("Emoliente", "Limpeza de pele", "frasco", 0, 1),
+        ("Tonico facial", "Limpeza de pele", "frasco", 0, 1),
+        ("Mascara calmante", "Limpeza de pele", "pote", 0, 1),
+        ("Filtro solar facial", "Finalizacao", "frasco", 0, 2),
+        ("Acido glicolico", "Peeling", "frasco", 0, 1),
+        ("Acido mandelico", "Peeling", "frasco", 0, 1),
+        ("Acido salicilico", "Peeling", "frasco", 0, 1),
+        ("Neutralizante de peeling", "Peeling", "frasco", 0, 1),
+        ("Serum hidratante", "Dermocosmeticos", "frasco", 0, 1),
+        ("Serum vitamina C", "Dermocosmeticos", "frasco", 0, 1),
+        ("Acido hialuronico cosmetico", "Dermocosmeticos", "frasco", 0, 1),
+        ("Gel condutor", "Equipamentos", "frasco", 0, 2),
+        ("Papel maca", "Descartaveis", "rolo", 0, 3),
+    ]
+
+    for nome, categoria, unidade, quantidade, minimo in produtos:
+        db.session.add(ProdutoEstoque(
+            nome=nome,
+            categoria=categoria,
+            unidade=unidade,
+            quantidade=quantidade,
+            estoque_minimo=minimo,
+            observacao="Produto base sugerido. Conferir marca, validade e regularizacao antes de usar."
+        ))
+
+    db.session.commit()
+
+with app.app_context():
+    db.create_all()
+    garantir_colunas()
+    popular_estoque_inicial()
+    if not ProcedimentoCatalogo.query.first():
+        procedimentos = [
+            ("Limpeza de pele", "Facial", 90, 180, 45, 30, "Enviar orientacoes de preparo e retorno em 30 dias."),
+            ("Botox", "Injetaveis", 60, 900, 260, 15, "Registrar lote, pontos aplicados e retorno para revisao."),
+            ("Peeling quimico", "Facial", 60, 250, 70, 21, "Avaliar fototipo, contraindicacoes e cuidados pos-procedimento."),
+            ("Bioestimulador", "Injetaveis", 75, 1800, 720, 45, "Registrar produto, lote, areas tratadas e plano de sessoes."),
+        ]
+        for nome, categoria, duracao, valor, custo, retorno, orientacoes in procedimentos:
+            db.session.add(ProcedimentoCatalogo(
+                nome=nome,
+                categoria=categoria,
+                duracao_minutos=duracao,
+                valor_padrao=valor,
+                custo_estimado=custo,
+                retorno_dias=retorno,
+                orientacoes=orientacoes
+            ))
+    for nome in PROFISSIONAIS:
+        email = f"{nome.lower().replace(' ', '.')}@espacoparvati.com"
+        if not User.query.filter_by(email=email).first():
+            db.session.add(User(
+                nome=nome,
+                email=email,
+                senha=generate_password_hash("Parvati@2026"),
+                perfil="admin" if nome == "Naiara" else "profissional",
+                profissional=nome,
+                ativo=True
+            ))
+    db.session.commit()
+
 

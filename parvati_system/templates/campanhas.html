@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="premium-page-header">
+    <div>
+        <h2 class="section-title">Campanhas</h2>
+        <p class="section-subtitle">Promocoes, aniversarios, retornos e relacionamento por WhatsApp</p>
+    </div>
+</div>
+
+<div class="panel-card" style="margin-bottom: 22px;">
+    <h3 class="form-section-title">Campanha promocional personalizada</h3>
+
+    <form method="POST">
+        <label>Titulo interno</label>
+        <input type="text" name="titulo" value="Promocao semanal">
+
+        <label>Mensagem</label>
+        <textarea name="mensagem" rows="6">Ola, {nome}!
+
+A Parvati Estetica preparou uma condicao especial para voce esta semana.
+
+Responda esta mensagem para reservar seu horario.</textarea>
+
+        <button type="submit" class="btn-gold">Preparar campanha para todos os clientes</button>
+    </form>
+</div>
+
+<div class="panel-card" style="margin-bottom: 22px;">
+    <h3 class="form-section-title">Acoes rapidas</h3>
+
+    <div class="premium-actions">
+        <a href="{{ url_for('campanhas_aniversarios') }}"><button class="btn-outline">Aniversarios de hoje</button></a>
+        <a href="{{ url_for('campanhas_promocao') }}"><button class="btn-outline">Promocao padrao</button></a>
+        <a href="{{ url_for('campanhas_inativos') }}"><button class="btn-outline">Clientes inativos</button></a>
+        <a href="{{ url_for('campanhas_retorno') }}"><button class="btn-outline">Lembrete de retorno</button></a>
+    </div>
+</div>
+
+{% if links_gerados %}
+<div class="table-card" style="margin-bottom: 22px;">
+    <h3 class="form-section-title">Links preparados</h3>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Cliente</th>
+                    <th>WhatsApp</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in links_gerados %}
+                <tr>
+                    <td>{{ item.cliente }}</td>
+                    <td><a href="{{ item.link }}" target="_blank">Abrir conversa</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<div class="table-card">
+    <h3 class="form-section-title">Historico de disparos</h3>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID Cliente</th>
+                    <th>Tipo</th>
+                    <th>Data</th>
+                    <th>Canal</th>
+                    <th>Observacao</th>
+                    <th>Link</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in disparos %}
+                <tr>
+                    <td>{{ d.cliente_id }}</td>
+                    <td>{{ d.tipo }}</td>
+                    <td>{{ d.data_envio }}</td>
+                    <td>{{ d.canal or 'whatsapp' }}</td>
+                    <td>{{ d.observacao }}</td>
+                    <td>
+                        {% if d.link_whatsapp %}
+                            <a href="{{ d.link_whatsapp }}" target="_blank">Abrir</a>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6">Nenhum disparo registrado ainda.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

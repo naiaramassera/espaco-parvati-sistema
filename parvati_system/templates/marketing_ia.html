@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="premium-page-header">
+    <div>
+        <h2 class="section-title">Marketing IA + Meta</h2>
+        <p class="section-subtitle">Gere campanhas com IA, revise o valor e publique somente depois da aprovacao.</p>
+    </div>
+    <div class="premium-actions">
+        <a href="{{ url_for('central_ia') }}"><button class="btn-outline">Central IA</button></a>
+        <a href="{{ url_for('campanhas') }}"><button class="btn-outline">Campanhas WhatsApp</button></a>
+    </div>
+</div>
+
+<div class="ai-metrics-grid">
+    <div class="dashboard-card">
+        <h3>Retornos</h3>
+        <p>{{ contexto.metricas.retornos_em_janela }}</p>
+    </div>
+    <div class="dashboard-card">
+        <h3>Inativos</h3>
+        <p>{{ contexto.metricas.clientes_inativos }}</p>
+    </div>
+    <div class="dashboard-card">
+        <h3>Sem agenda</h3>
+        <p>{{ contexto.metricas.clientes_sem_agenda }}</p>
+    </div>
+    <div class="dashboard-card">
+        <h3>Ticket medio</h3>
+        <p>R$ {{ "%.0f"|format(contexto.metricas.ticket_medio) }}</p>
+    </div>
+</div>
+
+<div class="ai-layout">
+    <section class="panel-card">
+        <h3 class="form-section-title">Gerar campanha</h3>
+        <form method="POST">
+            <label>Objetivo</label>
+            <input type="text" name="objetivo" value="Preencher horarios da semana e reativar clientes inativos">
+
+            <label>Publico</label>
+            <input type="text" name="publico" value="Clientes atuais, leads locais e mulheres interessadas em estetica facial">
+
+            <label>Valor maximo para impulsionamento</label>
+            <input type="number" name="orcamento" min="0" step="0.01" value="50.00">
+
+            <label>Canais</label>
+            <div class="checkbox-line">
+                <input type="checkbox" name="canais" value="facebook" checked>
+                <span>Facebook</span>
+            </div>
+            <div class="checkbox-line">
+                <input type="checkbox" name="canais" value="instagram" checked>
+                <span>Instagram</span>
+            </div>
+
+            <button type="submit" class="btn-gold">Gerar rascunho com IA</button>
+        </form>
+    </section>
+
+    <section class="panel-card">
+        <h3 class="form-section-title">Contexto usado pela IA</h3>
+        <div class="ai-insight-list">
+            <div class="ai-insight"><strong>Procedimentos:</strong> {{ contexto.procedimentos }}</div>
+            <div class="ai-insight"><strong>Retornos:</strong> {{ contexto.retornos }}</div>
+            <div class="ai-insight"><strong>Inativos:</strong> {{ contexto.inativos }}</div>
+        </div>
+    </section>
+</div>
+
+<div class="table-card" style="margin-top: 22px;">
+    <h3 class="form-section-title">Rascunhos e publicacoes</h3>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Status</th>
+                    <th>Objetivo</th>
+                    <th>Legenda</th>
+                    <th>Valor</th>
+                    <th>Acao</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for campanha in campanhas_ia %}
+                <tr>
+                    <td>{{ campanha.id }}</td>
+                    <td>
+                        {% if campanha.status == "publicada" %}
+                            <span class="badge badge-success">Publicada</span>
+                        {% elif campanha.status == "aprovada" %}
+                            <span class="badge badge-info">Aprovada</span>
+                        {% elif campanha.status == "erro" %}
+                            <span class="badge badge-danger">Erro</span>
+                        {% else %}
+                            <span class="badge badge-warning">Rascunho</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ campanha.objetivo }}</td>
+                    <td style="min-width: 340px;">
+                        <strong>{{ campanha.chamada }}</strong><br>
+                        {{ campanha.legenda }}<br>
+                        <small>{{ campanha.hashtags }}</small>
+                        {% if campanha.erro %}
+                            <br><small>Erro: {{ campanha.erro }}</small>
+                        {% endif %}
+                    </td>
+                    <td>R$ {{ "%.2f"|format(centavos_para_reais(campanha.orcamento_centavos)) }}</td>
+                    <td>
+                        {% if campanha.status in ["rascunho", "erro"] %}
+                            <form method="POST" action="{{ url_for('aprovar_marketing_ia', id=campanha.id) }}">
+                                <input type="number" name="orcamento" min="0" step="0.01" value="{{ '%.2f'|format(centavos_para_reais(campanha.orcamento_centavos)) }}">
+                                <button type="submit" class="btn-gold">Aprovar valor</button>
+                            </form>
+                        {% elif campanha.status == "aprovada" %}
+                            <form method="POST" action="{{ url_for('publicar_marketing_ia', id=campanha.id) }}">
+                                <button type="submit" class="btn-outline">Publicar Meta</button>
+                            </form>
+                        {% else %}
+                            <small>{{ campanha.meta_resultado or '-' }}</small>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6">Nenhuma campanha IA criada ainda.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

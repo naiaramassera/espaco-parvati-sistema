@@ -5,12 +5,55 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="7ef2f509-8b42-4ffa-a61c-665d3ee01063" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/parvati_system/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/parvati_system/automacoes.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/parvati_system/models.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/parvati_system/routes.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/parvati_system/static/upload/logo.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/parvati_system/templates/anamnese_profissional.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/parvati_system/templates/campanhas.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/parvati_system/templates/dashbord.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/parvati_system/templates/importar_agenda_excel.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/parvati_system/templates/importar_clientes.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/parvati_system/templates/prontuario.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/EspaçoParvati.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/EspaçoParvati.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/parvati_system/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/parvati_system/app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/parvati_system/static/css/logo.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/parvati_system/static/css/style.css" beforeDir="false" afterPath="$PROJECT_DIR$/parvati_system/static/css/style.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/parvati_system/static/js/main.js" beforeDir="false" afterPath="$PROJECT_DIR$/parvati_system/static/js/main.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/parvati_system/templates/agenda.html" beforeDir="false" afterPath="$PROJECT_DIR$/parvati_system/templates/agenda.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/parvati_system/templates/anamnese.html" beforeDir="false" afterPath="$PROJECT_DIR$/parvati_system/templates/anamnese.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/parvati_system/templates/anamnese_cliente.html" beforeDir="false" afterPath="$PROJECT_DIR$/parvati_system/templates/anamnese_cliente.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/parvati_system/templates/aniversarios.html" beforeDir="false" afterPath="$PROJECT_DIR$/parvati_system/templates/aniversarios.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/parvati_system/templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/parvati_system/templates/base.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/parvati_system/templates/clientes.html" beforeDir="false" afterPath="$PROJECT_DIR$/parvati_system/templates/clientes.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/parvati_system/templates/financeiro.html" beforeDir="false" afterPath="$PROJECT_DIR$/parvati_system/templates/financeiro.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/parvati_system/templates/historico.html" beforeDir="false" afterPath="$PROJECT_DIR$/parvati_system/templates/historico.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/parvati_system/templates/home.html" beforeDir="false" afterPath="$PROJECT_DIR$/parvati_system/templates/home.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/parvati_system/templates/lista_anamnese.html" beforeDir="false" afterPath="$PROJECT_DIR$/parvati_system/templates/lista_anamnese.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/parvati_system/templates/login.html" beforeDir="false" afterPath="$PROJECT_DIR$/parvati_system/templates/login.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/parvati_system/templates/novo_agendamento.html" beforeDir="false" afterPath="$PROJECT_DIR$/parvati_system/templates/novo_agendamento.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/parvati_system/templates/novo_cliente.html" beforeDir="false" afterPath="$PROJECT_DIR$/parvati_system/templates/novo_cliente.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/parvati_system/templates/obrigado.html" beforeDir="false" afterPath="$PROJECT_DIR$/parvati_system/templates/obrigado.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/parvati_system/templates/ver_anamnese.html" beforeDir="false" afterPath="$PROJECT_DIR$/parvati_system/templates/ver_anamnese.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -29,34 +72,44 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "dart.analysis.tool.window.visible": "false",
-    "git-widget-placeholder": "main",
-    "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "C:/Users/T-Gamer/PycharmProjects/EspaçoParvati/parvati_system/static/css",
-    "run.code.analysis.last.selected.profile": "aDefault",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable",
-    "show.migrate.to.gradle.popup": "false"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Python.app.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;dart.analysis.tool.window.visible&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/T-Gamer/PycharmProjects/EspaçoParvati/parvati_system/static/upload&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;aDefault&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;,
+    &quot;show.migrate.to.gradle.popup&quot;: &quot;false&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\T-Gamer\PycharmProjects\EspaçoParvati\parvati_system\static\upload" />
       <recent name="C:\Users\T-Gamer\PycharmProjects\EspaçoParvati\parvati_system\static\css" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\T-Gamer\PycharmProjects\EspaçoParvati\parvati_system\static" />
       <recent name="C:\Users\T-Gamer\PycharmProjects\EspaçoParvati\parvati_system" />
     </key>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
+        <option value="bundled-js-predefined-d6986cc7102b-3aa1da707db6-JavaScript-PY-252.26830.99" />
         <option value="bundled-python-sdk-164cda30dcd9-0af03a5fa574-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-252.26830.99" />
       </set>
     </attachedChunks>
@@ -68,18 +121,15 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1771074004435</updated>
+      <workItem from="1781131032267" duration="9793000" />
+      <workItem from="1781180985376" duration="3177000" />
+      <workItem from="1781370709842" duration="1952000" />
+      <workItem from="1781527829381" duration="8486000" />
+      <workItem from="1781726940565" duration="110000" />
     </task>
     <servers />
   </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/parvati_system/app.py</url>
-          <line>30</line>
-          <option name="timeStamp" value="1" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
   </component>
 </project>

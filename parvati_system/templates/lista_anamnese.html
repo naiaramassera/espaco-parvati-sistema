@@ -2,35 +2,30 @@
 
 {% block content %}
 
-<h2>Prontuários / Anamneses</h2>
+<h2>Prontuarios / Anamneses</h2>
 
 <table class="agenda-table">
+    <tr>
+        <th>Cliente</th>
+        <th>Data</th>
+        <th>Acoes</th>
+    </tr>
 
-<tr>
-    <th>Cliente</th>
-    <th>Telefone</th>
-    <th>Procedimento</th>
-    <th>Data</th>
-    <th>Ações</th>
-</tr>
-
-{% for item in lista %}
-
-<tr>
-    <td>{{ item.cliente }}</td>
-    <td>{{ item.telefone }}</td>
-    <td>{{ item.procedimento }}</td>
-    <td>{{ item.data }}</td>
-
-    <td>
-        <a href="/ver_anamnese/{{ item.id }}" class="btn-small blue">
-            Ver
-        </a>
-    </td>
-</tr>
-
-{% endfor %}
-
+    {% for item in lista %}
+    <tr>
+        <td>{{ clientes[item.cliente_id].nome if item.cliente_id in clientes else 'Cliente nao encontrado' }}</td>
+        <td>{{ item.data }}</td>
+        <td>
+            <a href="{{ url_for('ver_anamnese', id=item.id) }}" class="btn-small blue">
+                Ver
+            </a>
+        </td>
+    </tr>
+    {% else %}
+    <tr>
+        <td colspan="3">Nenhuma anamnese cadastrada.</td>
+    </tr>
+    {% endfor %}
 </table>
 
 {% endblock %}

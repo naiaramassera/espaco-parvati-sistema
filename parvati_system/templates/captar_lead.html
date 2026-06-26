@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parvati Estetica - Avaliacao</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <main class="lead-public-page">
+        <section class="lead-public-hero">
+            <div>
+                <span class="ai-kicker">Parvati Estetica</span>
+                <h1>Agende sua avaliacao</h1>
+                <p>Conte o que voce procura e nossa equipe retorna pelo WhatsApp com as melhores opcoes de horario.</p>
+            </div>
+        </section>
+
+        <section class="lead-public-form panel-card">
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="flash-premium">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST">
+                <input type="hidden" name="origem" value="{{ request.args.get('origem', 'landing') }}">
+
+                <label>Nome</label>
+                <input type="text" name="nome" required>
+
+                <label>WhatsApp</label>
+                <input type="text" name="telefone" placeholder="DDD + numero" required>
+
+                <label>Email</label>
+                <input type="email" name="email">
+
+                <label>Tenho interesse em</label>
+                <select name="interesse">
+                    <option value="Avaliacao estetica">Avaliacao estetica</option>
+                    {% for item in procedimentos %}
+                        <option value="{{ item.nome }}">{{ item.categoria or 'Geral' }} - {{ item.nome }}</option>
+                    {% endfor %}
+                </select>
+
+                <label>O que voce gostaria de melhorar?</label>
+                <textarea name="mensagem" rows="4" placeholder="Ex.: manchas, pele, rejuvenescimento, botox, limpeza de pele"></textarea>
+
+                <button type="submit" class="btn-gold">Quero receber horarios</button>
+            </form>
+        </section>
+    </main>
+</body>
+</html>

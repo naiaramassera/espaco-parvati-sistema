@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boleto - Parvati Estetica</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <main class="panel-card" style="max-width: 760px; margin: 40px auto;">
+        <h1 class="section-title">Boleto</h1>
+        <p><strong>Cliente:</strong> {{ financeiro.cliente }}</p>
+        <p><strong>Procedimento:</strong> {{ financeiro.procedimento }}</p>
+        <p><strong>Valor:</strong> R$ {{ financeiro.valor }}</p>
+        <p><strong>Vencimento:</strong> {{ financeiro.vencimento or 'Nao informado' }}</p>
+        <p><strong>Status:</strong> {{ financeiro.boleto_status or 'nao_gerado' }}</p>
+
+        <label>Linha digitavel</label>
+        <input type="text" value="{{ financeiro.linha_digitavel or '' }}" readonly>
+
+        {% if financeiro.boleto_link and financeiro.boleto_link != request.url %}
+            <p style="margin-top: 16px;"><a href="{{ financeiro.boleto_link }}">Abrir boleto externo</a></p>
+        {% endif %}
+    </main>
+</body>
+</html>

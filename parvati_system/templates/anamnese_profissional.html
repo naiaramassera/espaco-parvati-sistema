@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Anamnese Estética</h2>
+
+<div class="progress-bar">
+<div id="progress"></div>
+</div>
+
+<form method="POST" id="formAnamnese">
+
+<!-- ETAPA 1 -->
+
+<div class="step active">
+
+<h3>Dados do Cliente</h3>
+
+<input type="text" name="cliente" placeholder="Nome do cliente" required>
+
+<input type="text" name="telefone" placeholder="Telefone">
+
+<button type="button" onclick="nextStep()">Próximo</button>
+
+</div>
+
+<!-- ETAPA 2 -->
+
+<div class="step">
+
+<h3>Histórico de Saúde</h3>
+
+<label>Doenças</label>
+<textarea name="doencas"></textarea>
+
+<label>Medicamentos</label>
+<textarea name="medicamentos"></textarea>
+
+<label>Alergias</label>
+<textarea name="alergias"></textarea>
+
+<button type="button" onclick="prevStep()">Voltar</button>
+<button type="button" onclick="nextStep()">Próximo</button>
+
+</div>
+
+<!-- ETAPA 3 -->
+
+<div class="step">
+
+<h3>Pele</h3>
+
+<select name="tipo_pele">
+
+<option>Oleosa</option>
+<option>Seca</option>
+<option>Mista</option>
+<option>Normal</option>
+
+</select>
+
+<select name="sensibilidade">
+
+<option>Alta</option>
+<option>Média</option>
+<option>Baixa</option>
+
+</select>
+
+<button type="button" onclick="prevStep()">Voltar</button>
+<button type="button" onclick="nextStep()">Próximo</button>
+
+</div>
+
+<!-- ETAPA 4 -->
+
+<div class="step">
+
+<h3>Avaliação Profissional</h3>
+
+<textarea name="avaliacao"></textarea>
+
+<button type="button" onclick="prevStep()">Voltar</button>
+<button type="button" onclick="nextStep()">Próximo</button>
+
+</div>
+
+<!-- ETAPA 5 -->
+
+<div class="step">
+
+<h3>Plano de Tratamento</h3>
+
+<textarea name="plano"></textarea>
+
+<button type="button" onclick="prevStep()">Voltar</button>
+
+<button type="submit">Salvar Anamnese</button>
+
+</div>
+
+</form>
+
+{% endblock %}

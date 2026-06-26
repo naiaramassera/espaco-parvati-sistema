@@ -1,69 +1,50 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-
-<meta charset="UTF-8">
-<title>Anamnese - Espaço Parvati</title>
-
-<link rel="stylesheet"
- href="{{ url_for('static', filename='css/style.css') }}">
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anamnese - Parvati Estetica</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-
 <body>
+    <main class="panel-card" style="max-width: 760px; margin: 40px auto;">
+        <h1 class="section-title">Ficha de Anamnese</h1>
+        <p class="section-subtitle">Preencha as informacoes antes do atendimento.</p>
 
-<div class="form-box">
+        <form method="POST">
+            <label>Nome</label>
+            <input type="text" name="cliente" value="{{ cliente.nome }}" readonly>
 
-<h2>Ficha de Atendimento</h2>
-<p>Espaço Parvati</p>
+            <label>Telefone</label>
+            <input type="text" name="telefone" value="{{ cliente.telefone or '' }}" readonly>
 
-<form method="POST">
+            <label>Idade</label>
+            <input type="number" name="idade" value="{{ cliente.idade or '' }}">
 
-<label>Nome</label>
-<input type="text" name="cliente" required>
+            <label>Sexo</label>
+            <select name="sexo">
+                <option>Feminino</option>
+                <option>Masculino</option>
+                <option>Outro</option>
+            </select>
 
-<label>Telefone</label>
-<input type="text" name="telefone" required>
+            <label>Possui alguma doenca ou condicao importante?</label>
+            <textarea name="doenca"></textarea>
 
-<label>Idade</label>
-<input type="text" name="idade">
+            <label>Usa medicacao?</label>
+            <textarea name="medicacao"></textarea>
 
-<label>Sexo</label>
-<select name="sexo">
-<option>Feminino</option>
-<option>Masculino</option>
-<option>Outro</option>
-</select>
+            <label>Alergias</label>
+            <textarea name="alergias"></textarea>
 
-<label>Possui doença?</label>
-<select name="doenca">
-<option>Não</option>
-<option>Sim</option>
-</select>
+            <label>Procedimento desejado ou agendado</label>
+            <input type="text" name="procedimento">
 
-<label>Usa medicação?</label>
-<select name="medicacao">
-<option>Não</option>
-<option>Sim</option>
-</select>
+            <label>Observacoes</label>
+            <textarea name="observacoes"></textarea>
 
-<label>Alergias</label>
-<textarea name="alergias"></textarea>
-
-<label>Observações</label>
-<textarea name="observacoes"></textarea>
-
-<label>Procedimento</label>
-<input type="text" name="procedimento">
-
-<label>Data</label>
-<input type="date" name="data">
-
-<button type="submit">Enviar</button>
-
-</form>
-
-</div>
-
+            <button type="submit" class="btn-gold">Enviar anamnese</button>
+        </form>
+    </main>
 </body>
 </html>
