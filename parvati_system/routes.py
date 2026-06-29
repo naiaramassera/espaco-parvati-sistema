@@ -2270,27 +2270,3 @@ def webhook_agenda():
         app.logger.error("Erro ao enviar resposta WhatsApp: %s", exc)
 
     return jsonify({"ok": True, "resposta": resposta})
-
-
-@app.route('/webhook/whatsapp/oraculos', methods=['POST'])
-def webhook_oraculos():
-    """Webhook para o agente IA dos Oráculos de Lemúria."""
-    from parvati_system.oraculos_bot import processar_mensagem
-    from parvati_system.whatsapp import enviar_mensagem
-
-    payload = request.get_json(silent=True) or {}
-    resultado = _extrair_mensagem_webhook(payload)
-    if not resultado:
-        return jsonify({"ok": True})
-
-    telefone, texto, nome = resultado
-    if not texto.strip():
-        return jsonify({"ok": True})
-
-    resposta = processar_mensagem(telefone, texto, nome)
-    try:
-        enviar_mensagem(telefone, resposta)
-    except Exception as exc:
-        app.logger.error("Erro ao enviar resposta Oráculos: %s", exc)
-
-    return jsonify({"ok": True, "resposta": resposta})
