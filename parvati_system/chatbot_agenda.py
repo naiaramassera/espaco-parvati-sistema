@@ -148,6 +148,15 @@ def _digitos(valor: str) -> str:
     return re.sub(r"\D", "", str(valor or ""))
 
 
+def _telefone_confiavel(tel: str) -> bool:
+    """
+    True se os dígitos parecem um telefone real (BR: 10 a 13 dígitos).
+    JIDs @lid viram sequências longas que NÃO são telefone — casar esses
+    dígitos com o cadastro faz o bot chamar a pessoa pelo nome de outra cliente.
+    """
+    return 10 <= len(tel or "") <= 13
+
+
 def _horarios_livres(data_str: str, profissional: str) -> list[str]:
     ocupados = {
         a.hora for a in Agenda.query.filter_by(
@@ -177,9 +186,14 @@ def _datas_com_vaga(profissional: str) -> list[tuple[str, str, list[str]]]:
 
 def _encontrar_ou_criar_cliente(nome: str, telefone: str) -> Cliente:
     tel = _digitos(telefone)
-    cliente = Cliente.query.filter(
-        Cliente.telefone.contains(tel[-8:])
-    ).first() if tel else None
+    cliente = None
+    if tel and _telefone_confiavel(tel):
+        cliente = Cliente.query.filter(
+            Cliente.telefone.contains(tel[-8:])
+        ).first()
+    elif tel:
+        # Identificador @lid: só aceita correspondência exata
+        cliente = Cliente.query.filter_by(telefone=telefone).first()
     if not cliente:
         cliente = Cliente(nome=nome or "Cliente WhatsApp", telefone=telefone)
         db.session.add(cliente)
@@ -195,12 +209,14 @@ def _verificar_cliente_retornando(tel: str) -> Optional[str]:
     if not tel:
         return None
 
-    # Busca no cadastro de clientes
-    cliente = Cliente.query.filter(
-        Cliente.telefone.contains(tel[-8:])
-    ).first()
-    if cliente and cliente.nome and cliente.nome not in ("Cliente WhatsApp", ""):
-        return cliente.nome
+    # Busca no cadastro de clientes — apenas quando os dígitos são um telefone
+    # real; IDs @lid podem casar por acaso com o telefone de outra cliente.
+    if _telefone_confiavel(tel):
+        cliente = Cliente.query.filter(
+            Cliente.telefone.contains(tel[-8:])
+        ).first()
+        if cliente and cliente.nome and cliente.nome not in ("Cliente WhatsApp", ""):
+            return cliente.nome
 
     # Busca em conversas anteriores com nome registrado
     conversa_anterior = ConversaBot.query.filter_by(
@@ -230,7 +246,25 @@ def _estado_inicio(conversa: ConversaBot, _texto: str) -> str:
 
 def _estado_busca_nome(conversa: ConversaBot, texto: str) -> str:
     dados = conversa.dados or {}
-    nome = texto.strip().title()
+    limpo = texto.strip()
+
+    # Remove prefixos comuns ("meu nome é Ana" → "Ana")
+    for prefixo in ("meu nome é", "meu nome e", "me chamo", "sou a", "sou o", "aqui é", "aqui e"):
+        if _normalizar(limpo).startswith(prefixo):
+            limpo = limpo[len(prefixo):].strip()
+            break
+
+    # Se a resposta parece uma pergunta/frase (não um nome), não registra
+    # como nome — responde direto pela IA para o bot não chamar a cliente
+    # de "Quero Saber O Valor Do Botox".
+    if "?" in limpo or len(limpo.split()) > 4 or not re.search(r"[a-zA-ZÀ-ÿ]", limpo):
+        dados["nome_cliente"] = ""
+        dados["historico"] = []
+        conversa.dados = dados
+        conversa.estado = "ia"
+        return _estado_ia(conversa, texto)
+
+    nome = limpo.title()
     dados["nome_cliente"] = nome
     dados["historico"] = []
     conversa.dados = dados
@@ -325,7 +359,7 @@ def _estado_horario(conversa: ConversaBot, texto: str) -> str:
 
     if not hora_normalizada:
         return (
-            f"Esse horário não está disponível em {data_str}.\n"
+            f"Esse horário não está disponível em {_data_display(data_str)}.\n"
             "Horários livres: " + "  |  ".join(horas_livres)
         )
 

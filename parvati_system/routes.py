@@ -2363,8 +2363,50 @@ def campanhas_retorno():
 
 # ── Webhooks WhatsApp ─────────────────────────────────────────────────────────
 
-_mensagens_processadas: set[str] = set()
-_MAX_IDS_CACHE = 500
+# Mensagens mais antigas que isso são ignoradas (evita responder replay de
+# histórico quando a instância do WhatsApp reconecta).
+_IDADE_MAXIMA_MENSAGEM_SEG = 300
+
+
+def _mensagem_ja_processada(msg_id: str) -> bool:
+    """
+    Registra o ID da mensagem no banco e retorna True se já foi processada.
+    Usa constraint UNIQUE para deduplicar entre workers e reinícios.
+    """
+    if not msg_id:
+        return False
+    from sqlalchemy.exc import IntegrityError
+    from parvati_system.models import MensagemWebhookProcessada
+    try:
+        db.session.add(MensagemWebhookProcessada(msg_id=str(msg_id)[:120]))
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        return True
+    # Limpa registros antigos para a tabela não crescer sem limite
+    try:
+        limite = datetime.utcnow() - timedelta(days=2)
+        MensagemWebhookProcessada.query.filter(
+            MensagemWebhookProcessada.criado_em < limite
+        ).delete()
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+    return False
+
+
+def _mensagem_muito_antiga(timestamp) -> bool:
+    """True se a mensagem foi enviada há mais de _IDADE_MAXIMA_MENSAGEM_SEG."""
+    try:
+        ts = int(timestamp)
+    except (TypeError, ValueError):
+        return False
+    if ts <= 0:
+        return False
+    if ts > 10**12:  # veio em milissegundos
+        ts //= 1000
+    import time
+    return (time.time() - ts) > _IDADE_MAXIMA_MENSAGEM_SEG
 
 
 def _extrair_mensagem_webhook(payload: dict) -> tuple[str, str, str] | None:
@@ -2372,8 +2414,6 @@ def _extrair_mensagem_webhook(payload: dict) -> tuple[str, str, str] | None:
     Extrai (telefone, texto, nome) de payloads dos provedores suportados.
     Retorna None se não for uma mensagem de texto válida.
     """
-    global _mensagens_processadas
-
     # Z-API
     if "phone" in payload and "text" in payload:
         # Z-API envia fromMe=True quando é mensagem enviada pelo bot
@@ -2382,18 +2422,17 @@ def _extrair_mensagem_webhook(payload: dict) -> tuple[str, str, str] | None:
         texto = payload.get("text", {})
         if isinstance(texto, dict):
             texto = texto.get("message", "")
-        msg_id = payload.get("messageId", "")
-        if msg_id:
-            if msg_id in _mensagens_processadas:
-                return None
-            _mensagens_processadas.add(msg_id)
-            if len(_mensagens_processadas) > _MAX_IDS_CACHE:
-                _mensagens_processadas = set(list(_mensagens_processadas)[-_MAX_IDS_CACHE:])
+        if _mensagem_muito_antiga(payload.get("momment") or payload.get("moment")):
+            return None
+        if _mensagem_ja_processada(payload.get("messageId", "")):
+            return None
         return payload["phone"], str(texto), payload.get("senderName", "")
 
-    # Evolution API — só processa eventos de nova mensagem
+    # Evolution API — só processa eventos de mensagem NOVA.
+    # MESSAGES_SET é sincronização de histórico (mensagens antigas) e não
+    # pode ser respondido, senão o bot dispara respostas em rajada ao reconectar.
     event = payload.get("event", "")
-    if event and event not in ("MESSAGES_UPSERT", "messages.upsert", "message", "MESSAGES_SET"):
+    if event and event not in ("MESSAGES_UPSERT", "messages.upsert", "message"):
         return None
 
     data = payload.get("data", {})
@@ -2406,14 +2445,11 @@ def _extrair_mensagem_webhook(payload: dict) -> tuple[str, str, str] | None:
         remoteJid = key.get("remoteJid", "")
         if remoteJid.endswith("@g.us"):
             return None
+        if _mensagem_muito_antiga(data.get("messageTimestamp")):
+            return None
         # Deduplicação por ID de mensagem
-        msg_id = key.get("id", "")
-        if msg_id:
-            if msg_id in _mensagens_processadas:
-                return None
-            _mensagens_processadas.add(msg_id)
-            if len(_mensagens_processadas) > _MAX_IDS_CACHE:
-                _mensagens_processadas = set(list(_mensagens_processadas)[-_MAX_IDS_CACHE:])
+        if _mensagem_ja_processada(key.get("id", "")):
+            return None
         # Usa o remoteJid completo para responder corretamente (inclusive @lid)
         numero = remoteJid
         msg = data.get("message", {})
