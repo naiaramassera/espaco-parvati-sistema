@@ -185,10 +185,26 @@ Esse pode ser um bom momento para retorno ou manutencao. Quer que eu separe algu
         return links
 
 
+def _disparar_lembretes_agendamento():
+    """Envia lembretes WhatsApp para os agendamentos do dia seguinte."""
+    from parvati_system.app import app
+    from parvati_system.lembretes import enviar_lembretes
+    with app.app_context():
+        try:
+            res = enviar_lembretes()
+            logger.info(
+                "Lembretes automáticos enviados — %s: %d clientes, %d profissionais, %d falhas",
+                res["data"], res["clientes_enviados"], res["profissionais_enviados"], res["falhas"],
+            )
+        except Exception as exc:
+            logger.error("Erro ao enviar lembretes automáticos: %s", exc)
+
+
 schedule.every().day.at("09:00").do(disparar_aniversarios)
 schedule.every().monday.at("10:00").do(campanha_promocional)
 schedule.every().day.at("11:00").do(recuperar_clientes_inativos)
 schedule.every().day.at("12:00").do(lembrar_retorno_procedimento)
+schedule.every().day.at("08:00").do(_disparar_lembretes_agendamento)
 
 
 def iniciar_automacoes():

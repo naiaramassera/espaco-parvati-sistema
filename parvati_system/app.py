@@ -77,6 +77,7 @@ def garantir_colunas():
         "user": {
             "perfil": "VARCHAR(30) DEFAULT 'profissional'",
             "profissional": "VARCHAR(50)",
+            "telefone": "VARCHAR(20)",
             "ativo": "BOOLEAN DEFAULT 1",
         },
         "produto_estoque": {

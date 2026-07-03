@@ -25,19 +25,7 @@
             </div>
         </div>
 
-        <nav class="top-nav">
-            <a href="{{ url_for('agenda') }}">Agenda</a>
-                {% if current_user.is_authenticated and current_user.perfil == 'admin' %}
-                    <a href="{{ url_for('central_ia') }}">IA/CRM/CRC</a>
-                    <a href="{{ url_for('financeiro') }}">Financeiro</a>
-                    <a href="{{ url_for('clientes') }}">Clientes</a>
-                    <a href="{{ url_for('procedimentos') }}">Procedimentos</a>
-                    <a href="{{ url_for('estoque') }}">Estoque</a>
-                    <a href="{{ url_for('campanhas') }}">Campanhas</a>
-                    <a href="{{ url_for('marketing_ia') }}">Marketing IA</a>
-                    <a href="{{ url_for('agente_comercial') }}">Leads</a>
-                {% endif %}
-        </nav>
+        <nav class="top-nav"></nav>
 
         <div class="user-box">
             <div class="user-avatar">{{ current_user.nome[:1] if current_user.is_authenticated and current_user.nome else 'P' }}</div>
@@ -72,7 +60,7 @@
                     <a href="{{ url_for('campanhas') }}" class="side-link">Campanhas</a>
                     <a href="{{ url_for('marketing_ia') }}" class="side-link">Marketing IA + Meta</a>
                     <a href="{{ url_for('agente_comercial') }}" class="side-link">Agente Comercial</a>
-                    <a href="{{ url_for('funcionarias') }}" class="side-link">Funcionarias</a>
+                    <a href="{{ url_for('funcionarias') }}" class="side-link">Parceiras</a>
                     <a href="{{ url_for('importar_clientes') }}" class="side-link">Importar Clientes</a>
                 {% endif %}
                 <a href="{{ url_for('minha_senha') }}" class="side-link">Alterar Senha</a>
@@ -81,11 +69,11 @@
         </aside>
 
         <main class="content-premium">
-            {% with messages = get_flashed_messages() %}
+            {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                     <div class="flash-stack">
-                        {% for message in messages %}
-                            <div class="flash-premium">{{ message }}</div>
+                        {% for category, message in messages %}
+                            <div class="flash-premium flash-{{ category }}">{{ message | safe }}</div>
                         {% endfor %}
                     </div>
                 {% endif %}

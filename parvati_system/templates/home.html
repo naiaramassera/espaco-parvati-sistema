@@ -26,20 +26,20 @@
 
     <div class="dashboard-card luxury-card">
         <div class="card-icon">R$</div>
-        <h3>Faturamento</h3>
-        <p>R$ {{ faturamento }}</p>
+        <h3>Faturamento <small style="font-size:0.7em;opacity:0.7">{{ mes_atual }}</small></h3>
+        <p>R$ {{ "%.2f"|format(faturamento) }}</p>
     </div>
 
     <div class="dashboard-card luxury-card">
         <div class="card-icon">Custo</div>
-        <h3>Custo Estimado</h3>
-        <p>R$ {{ custo_estimado }}</p>
+        <h3>Custo Est. <small style="font-size:0.7em;opacity:0.7">{{ mes_atual }}</small></h3>
+        <p>R$ {{ "%.2f"|format(custo_estimado) }}</p>
     </div>
 
     <div class="dashboard-card luxury-card">
         <div class="card-icon">Lucro</div>
-        <h3>Lucro Estimado</h3>
-        <p>R$ {{ lucro_estimado }}</p>
+        <h3>Lucro Est. <small style="font-size:0.7em;opacity:0.7">{{ mes_atual }}</small></h3>
+        <p>R$ {{ "%.2f"|format(lucro_estimado) }}</p>
     </div>
 </div>
 
@@ -101,5 +101,45 @@
         </table>
     </div>
 </div>
+
+{% if retornos_vencidos %}
+<div class="table-card" style="margin-top: 24px; border-left: 4px solid #e74c3c;">
+    <h3 class="section-title" style="color:#e74c3c;">⚠️ Retornos Vencidos ({{ retornos_vencidos|length }})</h3>
+    <p style="color:#888; margin-bottom:12px;">Clientes que passaram do prazo de retorno e ainda não agendaram novamente.</p>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Cliente</th>
+                    <th>Procedimento</th>
+                    <th>Retorno previsto</th>
+                    <th>Atraso</th>
+                    <th>Contato</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in retornos_vencidos %}
+                <tr>
+                    <td>{{ r.cliente }}</td>
+                    <td>{{ r.procedimento }}</td>
+                    <td>{{ r.data_retorno }}</td>
+                    <td><span class="badge badge-danger">{{ r.dias_atraso }} dias</span></td>
+                    <td>
+                        {% if r.link_wpp %}
+                            <a href="{{ r.link_wpp }}" target="_blank" class="btn-wpp-flash" style="font-size:0.8em; padding:4px 10px;">
+                                📲 WhatsApp
+                            </a>
+                        {% else %}
+                            <span style="color:#aaa">Sem telefone</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
 
 {% endblock %}

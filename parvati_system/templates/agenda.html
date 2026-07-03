@@ -15,6 +15,15 @@
         <a href="{{ url_for('novo_bloqueio', data=data_texto) }}">
             <button class="btn-outline">Bloquear Horario</button>
         </a>
+        {% if usuario_admin %}
+        <form method="POST" action="{{ url_for('enviar_lembretes_agenda') }}"
+              onsubmit="return confirm('Enviar lembretes WhatsApp para todos os agendados em {{ data_agenda.strftime(\'%d/%m/%Y\') }}?')">
+            <input type="hidden" name="data" value="{{ data_texto }}">
+            <button type="submit" class="btn-outline" title="Envia lembrete no WhatsApp para cada cliente agendado nesta data">
+                📲 Enviar Lembretes
+            </button>
+        </form>
+        {% endif %}
     </div>
 </div>
 
@@ -59,6 +68,20 @@
     </div>
 </div>
 
+{% if cores_procedimentos %}
+<div class="agenda-main-card" style="margin-bottom: 8px; padding: 10px 16px;">
+    <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
+        <span style="font-size:0.8em; color:#888; font-weight:600;">Procedimentos:</span>
+        {% for proc, cor in cores_procedimentos.items() %}
+        <span style="display:inline-flex; align-items:center; gap:5px; font-size:0.8em;">
+            <span style="width:12px; height:12px; border-radius:3px; background:{{ cor }}; display:inline-block;"></span>
+            {{ proc }}
+        </span>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
 <div class="agenda-main-card">
     <div class="agenda-day-title">
         <h3>{{ data_agenda.strftime('%d/%m/%Y') }}</h3>
@@ -84,7 +107,9 @@
 
                         {% if atendimentos %}
                             {% for item in atendimentos %}
-                            <div class="agenda-appointment status-{{ item.status|lower }} {% if item.tipo == 'bloqueio' %}agenda-blocked{% endif %}">
+                            {% set cor_proc = cores_procedimentos.get(item.visivel_procedimento, '#cccccc') if item.tipo != 'bloqueio' else '#888888' %}
+                            <div class="agenda-appointment status-{{ item.status|lower }} {% if item.tipo == 'bloqueio' %}agenda-blocked{% endif %}"
+                                 style="border-left: 4px solid {{ cor_proc }}; padding-left: 8px;">
                                 <strong>{{ item.visivel_cliente }}</strong>
                                 <span>{{ item.visivel_procedimento }}</span>
                                 {% if item.visivel_valor is not none %}
@@ -107,7 +132,8 @@
                                                 <a href="{{ url_for('prontuario', id=item.cliente_id) }}">Prontuario</a>
                                             {% endif %}
                                         {% endif %}
-                                        <a href="{{ url_for('cancelar', id=item.id) }}">Liberar/Cancelar</a>
+                                        <a href="{{ url_for('cancelar', id=item.id) }}"
+                                           onclick="return confirm('Cancelar agendamento de {{ item.visivel_cliente }}?')">Liberar/Cancelar</a>
                                     </div>
 
                                     <form method="POST" action="{{ url_for('reagendar_agendamento', id=item.id) }}" class="agenda-reschedule-form">

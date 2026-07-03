@@ -221,7 +221,66 @@ a {
     border-radius: 12px;
     box-shadow: var(--shadow-card);
     margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
 }
+.flash-success {
+    background: linear-gradient(180deg, #eaf7ee, #d4edd9);
+    border-left-color: #3a9e5f;
+    color: #1e5c35;
+}
+.flash-warning {
+    background: linear-gradient(180deg, #fff8e6, #fdecc8);
+    border-left-color: #e0a800;
+    color: #7a5500;
+}
+.flash-danger {
+    background: linear-gradient(180deg, #fdecea, #f9d6d3);
+    border-left-color: #d9534f;
+    color: #7a1f1c;
+}
+.btn-wpp-flash {
+    display: inline-block;
+    background: #25d366;
+    color: #fff !important;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.btn-wpp-flash:hover { background: #1ebe5b; }
+
+/* AUTOCOMPLETE DE CLIENTES */
+.autocomplete-wrap { position: relative; }
+.autocomplete-list {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0; right: 0;
+    background: #fff;
+    border: 1px solid #e0d4c0;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.12);
+    list-style: none;
+    margin: 4px 0 0;
+    padding: 4px 0;
+    z-index: 999;
+    max-height: 220px;
+    overflow-y: auto;
+}
+.autocomplete-list li {
+    padding: 10px 14px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text-main);
+    border-bottom: 1px solid #f5ede0;
+}
+.autocomplete-list li:last-child { border-bottom: none; }
+.autocomplete-list li:hover { background: #fdf5eb; }
 
 /* BLOCOS */
 .card,

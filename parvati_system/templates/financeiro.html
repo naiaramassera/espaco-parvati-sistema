@@ -5,147 +5,105 @@
 <div class="premium-page-header">
     <div>
         <h2 class="section-title">Financeiro</h2>
-        <p class="section-subtitle">Controle financeiro com preparacao para integracao de boleto</p>
+        <p class="section-subtitle">Controle de entradas, saídas e lucro por período</p>
+    </div>
+</div>
+
+{# ── Navegação de mês ─────────────────────────────────────────────────────── #}
+<div style="display:flex; align-items:center; gap:12px; margin-bottom:18px;">
+    <a href="{{ url_for('financeiro', mes=mes_anterior) }}"><button class="agenda-nav-btn">&lt;</button></a>
+    <form method="GET" style="display:inline-flex; align-items:center; gap:8px;">
+        <input type="month" name="mes" value="{{ mes_param }}"
+               style="padding:8px 12px; border:1px solid #ddd; border-radius:8px; font-size:0.95em;">
+        <button type="submit" class="btn-outline">Ver</button>
+    </form>
+    <a href="{{ url_for('financeiro', mes=mes_seguinte) }}"><button class="agenda-nav-btn">&gt;</button></a>
+    <span style="font-weight:600; color:#8B6F47; font-size:1em;">{{ mes_label | capitalize }}</span>
+</div>
+
+{# ── Cards de resumo ──────────────────────────────────────────────────────── #}
+<div class="financeiro-cards" style="margin-bottom:22px;">
+    <div class="finance-card" style="border-top:3px solid #27ae60;">
+        <span>Entradas</span>
+        <strong style="color:#27ae60;">R$ {{ "%.2f"|format(entradas) }}</strong>
+    </div>
+    <div class="finance-card" style="border-top:3px solid #e74c3c;">
+        <span>Saídas</span>
+        <strong style="color:#e74c3c;">R$ {{ "%.2f"|format(saidas) }}</strong>
+    </div>
+    <div class="finance-card" style="border-top:3px solid #f39c12;">
+        <span>Custos de atendimento</span>
+        <strong style="color:#f39c12;">R$ {{ "%.2f"|format(custo_atendimentos) }}</strong>
+    </div>
+    <div class="finance-card" style="border-top:3px solid {{ '#27ae60' if saldo >= 0 else '#e74c3c' }};">
+        <span>Saldo</span>
+        <strong style="color:{{ '#27ae60' if saldo >= 0 else '#e74c3c' }};">R$ {{ "%.2f"|format(saldo) }}</strong>
+    </div>
+    <div class="finance-card" style="border-top:3px solid #8e44ad;">
+        <span>Lucro estimado</span>
+        <strong style="color:#8e44ad;">R$ {{ "%.2f"|format(lucro_estimado) }}</strong>
     </div>
 </div>
 
 <div class="financeiro-grid">
+    {# ── Tabela de movimentações ───────────────────────────────────────────── #}
     <div class="financeiro-main">
-        <div class="financeiro-cards">
-            <div class="finance-card">
-                <span>Faturamento do Mes</span>
-                <strong>R$ {{ total_mes if total_mes is defined else 0 }}</strong>
-            </div>
-            <div class="finance-card">
-                <span>Entradas</span>
-                <strong>R$ {{ entradas if entradas is defined else 0 }}</strong>
-            </div>
-            <div class="finance-card">
-                <span>Saidas</span>
-                <strong>R$ {{ saidas if saidas is defined else 0 }}</strong>
-            </div>
-            <div class="finance-card">
-                <span>Saldo</span>
-                <strong>R$ {{ saldo if saldo is defined else 0 }}</strong>
-            </div>
-        </div>
-
-        <div class="panel-card" style="margin-top: 22px;">
-            <h3 class="form-section-title">Novo lancamento</h3>
-            <form method="POST">
-                <div class="premium-form-grid">
-                    <div>
-                        <label>Data</label>
-                        <input type="date" name="data" required>
-                    </div>
-                    <div>
-                        <label>Vencimento</label>
-                        <input type="date" name="vencimento">
-                    </div>
-                    <div>
-                        <label>Cliente</label>
-                        <input type="text" name="cliente" required>
-                    </div>
-                    <div>
-                        <label>Procedimento</label>
-                        <input type="text" name="procedimento" required>
-                    </div>
-                    <div>
-                        <label>Valor</label>
-                        <input type="number" step="0.01" name="valor" required>
-                    </div>
-                    <div>
-                        <label>Tipo</label>
-                        <select name="tipo">
-                            <option value="entrada">Entrada</option>
-                            <option value="saida">Saida</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label>Forma de pagamento</label>
-                        <select name="forma_pagamento">
-                            <option>Pix</option>
-                            <option>Cartao</option>
-                            <option>Dinheiro</option>
-                            <option>Transferencia</option>
-                            <option>Boleto</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label>Integracao boleto</label>
-                        <select name="integracao_boleto">
-                            <option value="manual">Manual</option>
-                            <option value="asaas">Asaas</option>
-                            <option value="gerencianet">Gerencianet</option>
-                            <option value="banco_inter">Banco Inter</option>
-                            <option value="sicredi">Sicredi</option>
-                        </select>
-                    </div>
-                    <div class="full-width">
-                        <label>Link do boleto</label>
-                        <input type="url" name="boleto_link" placeholder="Cole aqui o link se ja tiver sido gerado fora do sistema">
-                    </div>
-                    <div class="full-width">
-                        <label>Linha digitavel</label>
-                        <input type="text" name="linha_digitavel">
-                    </div>
-                </div>
-                <button type="submit" class="btn-gold">Salvar lancamento</button>
-            </form>
-        </div>
-
-        <div class="table-card" style="margin-top: 22px;">
-            <div class="premium-table-header">
-                <h3 class="section-title" style="margin-bottom:0;">Movimentacoes</h3>
-                <a href="{{ url_for('boletos_json') }}" target="_blank"><button class="btn-outline">JSON boletos</button></a>
+        <div class="table-card">
+            <div class="premium-table-header" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+                <h3 style="margin:0;">Movimentações de {{ mes_label | capitalize }}</h3>
+                <input type="text" id="busca-fin" placeholder="Buscar cliente ou procedimento..."
+                       autocomplete="off"
+                       style="padding:8px 12px; border:1px solid #ddd; border-radius:8px; font-size:0.9em; min-width:220px;"
+                       oninput="filtrarLancamentos(this.value)">
             </div>
 
             <div class="table-wrapper">
-                <table>
+                <table id="tabela-fin">
                     <thead>
                         <tr>
                             <th>Data</th>
-                            <th>Vencimento</th>
                             <th>Cliente</th>
                             <th>Procedimento</th>
                             <th>Valor</th>
                             <th>Tipo</th>
                             <th>Pagamento</th>
-                            <th>Boleto</th>
+                            <th>Excluir</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for f in financeiros %}
                         <tr>
-                            <td>{{ f.data }}</td>
-                            <td>{{ f.vencimento or '-' }}</td>
+                            <td>{{ f.data[8:10] }}/{{ f.data[5:7] }}/{{ f.data[0:4] }}</td>
                             <td>{{ f.cliente }}</td>
                             <td>{{ f.procedimento }}</td>
-                            <td>R$ {{ f.valor }}</td>
+                            <td>
+                                {% if f.tipo == "entrada" %}
+                                    <span style="color:#27ae60; font-weight:600;">+ R$ {{ "%.2f"|format(f.valor or 0) }}</span>
+                                {% else %}
+                                    <span style="color:#e74c3c; font-weight:600;">- R$ {{ "%.2f"|format(f.valor or 0) }}</span>
+                                {% endif %}
+                            </td>
                             <td>
                                 {% if f.tipo == "entrada" %}
                                     <span class="badge badge-success">Entrada</span>
                                 {% else %}
-                                    <span class="badge badge-danger">Saida</span>
+                                    <span class="badge badge-danger">Saída</span>
                                 {% endif %}
                             </td>
                             <td>{{ f.forma_pagamento }}</td>
                             <td>
-                                {% if f.forma_pagamento and 'Boleto' in f.forma_pagamento %}
-                                    <span class="badge badge-info">{{ f.boleto_status or 'nao_gerado' }}</span>
-                                    <br>
-                                    <a href="{{ url_for('gerar_boleto', id=f.id) }}">Preparar</a>
-                                    {% if f.boleto_link %}
-                                        | <a href="{{ f.boleto_link }}" target="_blank">Abrir</a>
-                                    {% endif %}
-                                {% else %}
-                                    -
-                                {% endif %}
+                                <form method="POST" action="{{ url_for('excluir_lancamento', id=f.id) }}"
+                                      onsubmit="return confirm('Excluir lançamento de {{ f.cliente }}?')">
+                                    <input type="hidden" name="mes" value="{{ mes_param }}">
+                                    <button type="submit" style="background:none; border:none; color:#e74c3c; cursor:pointer; font-size:1.1em;" title="Excluir">✕</button>
+                                </form>
                             </td>
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="8">Nenhuma movimentacao encontrada.</td>
+                            <td colspan="7" style="text-align:center; color:#aaa; padding:24px;">
+                                Nenhum lançamento em {{ mes_label }}.
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -154,17 +112,108 @@
         </div>
     </div>
 
+    {# ── Formulário de novo lançamento ────────────────────────────────────── #}
     <aside class="financeiro-side">
         <div class="panel-card financeiro-side-card">
-            <h3 class="section-title">Resumo</h3>
-            <p class="finance-side-line"><strong>Total de Registros:</strong> {{ financeiros|length if financeiros is defined else 0 }}</p>
-            <p class="finance-side-line"><strong>Entradas:</strong> R$ {{ entradas_hoje if entradas_hoje is defined else 0 }}</p>
-            <p class="finance-side-line"><strong>Saidas:</strong> R$ {{ saidas_hoje if saidas_hoje is defined else 0 }}</p>
-            <p class="finance-side-line"><strong>Custos dos atendimentos:</strong> R$ {{ custo_atendimentos if custo_atendimentos is defined else 0 }}</p>
-            <p class="finance-side-line"><strong>Lucro estimado:</strong> R$ {{ lucro_estimado if lucro_estimado is defined else 0 }}</p>
-            <p class="finance-side-line"><strong>Integracao:</strong> use o JSON de boletos para conectar com um provedor externo.</p>
+            <h3 class="form-section-title">Novo lançamento</h3>
+            <form method="POST" action="{{ url_for('financeiro', mes=mes_param) }}">
+
+                <label>Data</label>
+                <input type="date" name="data" value="{{ mes_param }}-01" required>
+
+                <label>Tipo</label>
+                <select name="tipo" id="tipo-lancamento" onchange="toggleBoleto()">
+                    <option value="entrada">Entrada</option>
+                    <option value="saida">Saída</option>
+                </select>
+
+                <label>Cliente</label>
+                <div class="autocomplete-wrap">
+                    <input type="text" name="cliente" id="campo-cliente-fin" autocomplete="off"
+                           required placeholder="Digite o nome...">
+                    <ul class="autocomplete-list" id="lista-clientes-fin"></ul>
+                </div>
+
+                <label>Procedimento / Descrição</label>
+                <input type="text" name="procedimento" required placeholder="Ex: Drenagem linfática">
+
+                <label>Valor (R$)</label>
+                <input type="number" step="0.01" min="0" name="valor" required placeholder="0,00">
+
+                <label>Forma de pagamento</label>
+                <select name="forma_pagamento" id="forma-pagamento" onchange="toggleBoleto()">
+                    <option>Pix</option>
+                    <option>Cartão</option>
+                    <option>Dinheiro</option>
+                    <option>Transferência</option>
+                    <option>Boleto</option>
+                </select>
+
+                <div id="campos-boleto" style="display:none;">
+                    <label>Vencimento do boleto</label>
+                    <input type="date" name="vencimento">
+
+                    <label>Link do boleto</label>
+                    <input type="url" name="boleto_link" placeholder="Cole o link se já gerado">
+
+                    <label>Linha digitável</label>
+                    <input type="text" name="linha_digitavel">
+                </div>
+
+                <button type="submit" class="btn-gold" style="margin-top:12px; width:100%;">Salvar lançamento</button>
+            </form>
         </div>
     </aside>
 </div>
+
+<script>
+function toggleBoleto() {
+    const forma = document.getElementById('forma-pagamento').value;
+    document.getElementById('campos-boleto').style.display = forma === 'Boleto' ? '' : 'none';
+}
+
+function filtrarLancamentos(q) {
+    q = q.toLowerCase().trim();
+    document.querySelectorAll('#tabela-fin tbody tr').forEach(function(tr) {
+        tr.style.display = (!q || tr.textContent.toLowerCase().includes(q)) ? '' : 'none';
+    });
+}
+
+// Autocomplete de clientes
+(function () {
+    const campo = document.getElementById("campo-cliente-fin");
+    const lista = document.getElementById("lista-clientes-fin");
+    let timer;
+
+    campo.addEventListener("input", function () {
+        clearTimeout(timer);
+        const q = this.value.trim();
+        if (q.length < 2) { lista.innerHTML = ""; lista.style.display = "none"; return; }
+        timer = setTimeout(() => {
+            fetch(`/api/clientes/buscar?q=${encodeURIComponent(q)}`)
+                .then(r => r.json())
+                .then(clientes => {
+                    lista.innerHTML = "";
+                    if (!clientes.length) { lista.style.display = "none"; return; }
+                    clientes.forEach(c => {
+                        const li = document.createElement("li");
+                        li.textContent = c.nome + (c.telefone ? ` — ${c.telefone}` : "");
+                        li.addEventListener("mousedown", () => {
+                            campo.value = c.nome;
+                            lista.innerHTML = "";
+                            lista.style.display = "none";
+                        });
+                        lista.appendChild(li);
+                    });
+                    lista.style.display = "block";
+                });
+        }, 250);
+    });
+
+    document.addEventListener("click", e => {
+        if (!campo.contains(e.target)) { lista.innerHTML = ""; lista.style.display = "none"; }
+    });
+})();
+</script>
 
 {% endblock %}

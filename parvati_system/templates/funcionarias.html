@@ -4,15 +4,15 @@
 
 <div class="premium-page-header">
     <div>
-        <h2 class="section-title">Funcionarias</h2>
-        <p class="section-subtitle">Cadastre logins e defina qual agenda cada profissional pode gerenciar.</p>
+        <h2 class="section-title">Parceiras</h2>
+        <p class="section-subtitle">Cadastre logins e defina qual agenda cada parceira pode gerenciar.</p>
     </div>
 </div>
 
 <div class="financeiro-grid">
     <div class="table-card">
         <div class="premium-table-header">
-            <h3>Logins cadastrados</h3>
+            <h3>Parceiras cadastradas</h3>
         </div>
         <div class="table-wrapper">
             <table>
@@ -20,9 +20,11 @@
                     <tr>
                         <th>Nome</th>
                         <th>Email</th>
+                        <th>WhatsApp</th>
                         <th>Perfil</th>
-                        <th>Profissional</th>
+                        <th>Agenda</th>
                         <th>Status</th>
+                        <th>Editar</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -30,9 +32,22 @@
                     <tr>
                         <td>{{ usuario.nome }}</td>
                         <td>{{ usuario.email }}</td>
-                        <td>{{ usuario.perfil }}</td>
+                        <td>{{ usuario.telefone or '-' }}</td>
+                        <td>{{ 'Administradora' if usuario.perfil == 'admin' else 'Parceira' }}</td>
                         <td>{{ usuario.profissional or '-' }}</td>
-                        <td>{% if usuario.ativo %}Ativo{% else %}Inativo{% endif %}</td>
+                        <td>
+                            {% if usuario.ativo %}
+                                <span class="badge badge-success">Ativa</span>
+                            {% else %}
+                                <span class="badge badge-danger">Inativa</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button type="button" class="btn-outline" style="font-size:0.8em; padding:4px 10px;"
+                                onclick="preencherFormulario({{ usuario.id }})">
+                                Editar
+                            </button>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -41,46 +56,83 @@
     </div>
 
     <div class="form-card">
-        <h3>Salvar funcionaria</h3>
-        <form method="POST">
-            <label>Editar login existente</label>
-            <select name="user_id">
-                <option value="">Novo login</option>
-                {% for usuario in usuarios %}
-                    <option value="{{ usuario.id }}">{{ usuario.nome }} - {{ usuario.email }}</option>
-                {% endfor %}
-            </select>
+        <h3 id="form-titulo">Nova parceira</h3>
+        <form method="POST" id="form-parceira">
+            <input type="hidden" name="user_id" id="user_id" value="">
 
             <label>Nome</label>
-            <input type="text" name="nome" required>
+            <input type="text" name="nome" id="campo-nome" required>
 
             <label>Email</label>
-            <input type="email" name="email" required>
+            <input type="email" name="email" id="campo-email" required>
+
+            <label>WhatsApp (com DDD, ex: 31991269732)</label>
+            <input type="tel" name="telefone" id="campo-telefone" placeholder="31999990000">
 
             <label>Senha</label>
-            <input type="text" name="senha" placeholder="Preencha para criar ou trocar a senha">
+            <input type="text" name="senha" id="campo-senha" placeholder="Preencha para criar ou trocar a senha">
 
             <label>Perfil</label>
-            <select name="perfil">
-                <option value="profissional">Profissional</option>
+            <select name="perfil" id="campo-perfil">
+                <option value="profissional">Parceira</option>
                 <option value="admin">Administradora</option>
             </select>
 
             <label>Agenda vinculada</label>
-            <select name="profissional" required>
+            <select name="profissional" id="campo-profissional" required>
                 {% for profissional in profissionais %}
                     <option value="{{ profissional }}">{{ profissional }}</option>
                 {% endfor %}
             </select>
 
             <label class="checkbox-line">
-                <input type="checkbox" name="ativo" checked>
+                <input type="checkbox" name="ativo" id="campo-ativo" checked>
                 Login ativo
             </label>
 
-            <button type="submit" class="btn-gold">Salvar</button>
+            <div style="display:flex; gap:10px; margin-top:8px;">
+                <button type="submit" class="btn-gold">Salvar</button>
+                <button type="button" class="btn-outline" onclick="limparFormulario()">Nova parceira</button>
+            </div>
         </form>
     </div>
 </div>
+
+<script>
+const dados = {
+    {% for u in usuarios %}
+    {{ u.id }}: {
+        nome: {{ u.nome | tojson }},
+        email: {{ u.email | tojson }},
+        telefone: {{ (u.telefone or '') | tojson }},
+        perfil: {{ u.perfil | tojson }},
+        profissional: {{ (u.profissional or '') | tojson }},
+        ativo: {{ 'true' if u.ativo else 'false' }}
+    },
+    {% endfor %}
+};
+
+function preencherFormulario(id) {
+    const u = dados[id];
+    if (!u) return;
+    document.getElementById('user_id').value = id;
+    document.getElementById('campo-nome').value = u.nome;
+    document.getElementById('campo-email').value = u.email;
+    document.getElementById('campo-telefone').value = u.telefone;
+    document.getElementById('campo-senha').value = '';
+    document.getElementById('campo-perfil').value = u.perfil;
+    document.getElementById('campo-profissional').value = u.profissional;
+    document.getElementById('campo-ativo').checked = u.ativo;
+    document.getElementById('form-titulo').textContent = 'Editando: ' + u.nome;
+    document.getElementById('form-parceira').scrollIntoView({ behavior: 'smooth' });
+}
+
+function limparFormulario() {
+    document.getElementById('user_id').value = '';
+    document.getElementById('form-parceira').reset();
+    document.getElementById('campo-ativo').checked = true;
+    document.getElementById('form-titulo').textContent = 'Nova parceira';
+}
+</script>
 
 {% endblock %}

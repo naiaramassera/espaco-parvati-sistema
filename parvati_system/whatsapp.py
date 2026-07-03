@@ -65,7 +65,10 @@ def _enviar_evolution(telefone: str, texto: str) -> bool:
     base_url = os.environ.get("EVOLUTION_URL", "http://localhost:8080")
     api_key = os.environ["EVOLUTION_API_KEY"]
     instance = os.environ.get("EVOLUTION_INSTANCE", "parvati")
-    numero = _limpar_telefone(telefone) + "@s.whatsapp.net"
+    if "@lid" in telefone or "@s.whatsapp.net" in telefone:
+        numero = telefone
+    else:
+        numero = _limpar_telefone(telefone) + "@s.whatsapp.net"
     url = f"{base_url}/message/sendText/{instance}"
     headers = {
         "Content-Type": "application/json",

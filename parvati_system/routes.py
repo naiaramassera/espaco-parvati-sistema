@@ -217,19 +217,63 @@ def home():
     if not usuario_admin():
         return redirect(url_for('agenda'))
 
-    hoje = date.today().strftime('%Y-%m-%d')
+    hoje_date = date.today()
+    hoje = hoje_date.strftime('%Y-%m-%d')
+    mes_inicio = hoje_date.replace(day=1).strftime('%Y-%m-%d')
 
-    total_hoje = Agenda.query.filter_by(data=hoje).count()
-
+    total_hoje = Agenda.query.filter_by(data=hoje).filter(Agenda.tipo != 'bloqueio').count()
     total_clientes = Cliente.query.count()
+    total_procedimentos = Agenda.query.filter(Agenda.tipo != 'bloqueio').count()
 
-    total_procedimentos = Agenda.query.count()
-
-    faturamento = db.session.query(db.func.sum(Agenda.valor)).filter(Agenda.tipo != "bloqueio").scalar() or 0
-    custo_estimado = db.session.query(db.func.sum(Agenda.custo_estimado)).filter(Agenda.tipo != "bloqueio").scalar() or 0
+    faturamento = db.session.query(db.func.sum(Agenda.valor)).filter(
+        Agenda.tipo != "bloqueio", Agenda.data >= mes_inicio
+    ).scalar() or 0
+    custo_estimado = db.session.query(db.func.sum(Agenda.custo_estimado)).filter(
+        Agenda.tipo != "bloqueio", Agenda.data >= mes_inicio
+    ).scalar() or 0
     lucro_estimado = faturamento - custo_estimado
 
-    agenda_hoje = Agenda.query.filter_by(data=hoje).all()
+    agenda_hoje = Agenda.query.filter_by(data=hoje).order_by(Agenda.hora).all()
+
+    # Clientes com retorno vencido e sem novo agendamento
+    retornos_vencidos = []
+    vistos = set()
+    atendidos = Agenda.query.filter(
+        Agenda.status == 'atendido',
+        Agenda.retorno_dias.isnot(None),
+        Agenda.cliente_id.isnot(None),
+    ).order_by(Agenda.data.desc()).all()
+
+    for ag in atendidos:
+        if ag.cliente_id in vistos:
+            continue
+        try:
+            data_ag = datetime.strptime(ag.data, "%Y-%m-%d").date()
+        except ValueError:
+            continue
+        data_retorno = data_ag + timedelta(days=ag.retorno_dias)
+        if data_retorno >= hoje_date:
+            continue
+        tem_novo = Agenda.query.filter(
+            Agenda.cliente_id == ag.cliente_id,
+            Agenda.data > ag.data,
+            Agenda.status.notin_(["cancelado"]),
+        ).first()
+        if not tem_novo:
+            msg_reagendamento = (
+                f"Olá, *{ag.cliente}*! 😊 Seu retorno de *{ag.procedimento}* "
+                f"estava previsto para {data_retorno.strftime('%d/%m/%Y')}. "
+                "Que tal agendarmos? Temos horários disponíveis! 🌸"
+            )
+            retornos_vencidos.append({
+                "cliente": ag.cliente,
+                "telefone": ag.telefone or "",
+                "procedimento": ag.procedimento,
+                "data_retorno": data_retorno.strftime("%d/%m/%Y"),
+                "dias_atraso": (hoje_date - data_retorno).days,
+                "link_wpp": criar_link_whatsapp(ag.telefone, msg_reagendamento) if ag.telefone else "",
+            })
+            vistos.add(ag.cliente_id)
 
     return render_template(
         'home.html',
@@ -240,7 +284,9 @@ def home():
         custo_estimado=custo_estimado,
         lucro_estimado=lucro_estimado,
         agenda_hoje=agenda_hoje,
-        status_agendamento=STATUS_AGENDAMENTO
+        retornos_vencidos=retornos_vencidos,
+        status_agendamento=STATUS_AGENDAMENTO,
+        mes_atual=hoje_date.strftime("%B/%Y"),
     )
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -271,6 +317,18 @@ def logout():
 
 from datetime import datetime, timedelta, date
 
+_PALETA_PROCEDIMENTOS = [
+    "#7B68EE", "#20B2AA", "#FF8C69", "#6BAA75", "#C97BB2",
+    "#E8A838", "#5B9BD5", "#E06C75", "#56B6C2", "#D4A5A5",
+]
+
+def _cor_procedimento(nome: str) -> str:
+    if not nome:
+        return "#cccccc"
+    idx = sum(ord(c) for c in nome.lower()) % len(_PALETA_PROCEDIMENTOS)
+    return _PALETA_PROCEDIMENTOS[idx]
+
+
 @app.route('/agenda')
 @login_required
 def agenda():
@@ -284,10 +342,12 @@ def agenda():
         data_agenda = date.today()
         data_texto = data_agenda.strftime("%Y-%m-%d")
 
+    # Intervalos de 10 em 10 minutos, das 07:00 às 20:00
     horarios = [
-        "08:00", "09:00", "10:00", "11:00",
-        "12:00", "13:00", "14:00", "15:00",
-        "16:00", "17:00", "18:00"
+        f"{h:02d}:{m:02d}"
+        for h in range(7, 21)
+        for m in range(0, 60, 10)
+        if not (h == 20 and m > 0)
     ]
 
     agendamentos = Agenda.query.filter_by(data=data_texto).order_by(Agenda.hora.asc()).all()
@@ -304,6 +364,7 @@ def agenda():
         for profissional in profissionais
     }
 
+    cores_procedimentos = {}
     for agendamento in agendamentos:
         if agendamento.profissional not in agenda_por_profissional:
             agenda_por_profissional[agendamento.profissional] = {horario: [] for horario in horarios}
@@ -311,7 +372,12 @@ def agenda():
         if agendamento.hora not in agenda_por_profissional[agendamento.profissional]:
             agenda_por_profissional[agendamento.profissional][agendamento.hora] = []
 
-        agenda_por_profissional[agendamento.profissional][agendamento.hora].append(agendamento_para_visao(agendamento))
+        visao = agendamento_para_visao(agendamento)
+        agenda_por_profissional[agendamento.profissional][agendamento.hora].append(visao)
+
+        proc = agendamento.procedimento or ""
+        if proc and proc not in cores_procedimentos:
+            cores_procedimentos[proc] = _cor_procedimento(proc)
 
     return render_template(
         'agenda.html',
@@ -324,6 +390,7 @@ def agenda():
         agenda_por_profissional=agenda_por_profissional,
         metricas_agenda=metricas_agenda,
         status_agendamento=STATUS_AGENDAMENTO,
+        cores_procedimentos=cores_procedimentos,
         usuario_admin=usuario_admin()
     )
 
@@ -448,20 +515,54 @@ def atendido(id):
 
     db.session.commit()
 
+    if not ja_atendido and ag.retorno_dias:
+        try:
+            data_retorno = (
+                datetime.strptime(ag.data, "%Y-%m-%d").date()
+                + timedelta(days=ag.retorno_dias)
+            ).strftime("%Y-%m-%d")
+            link_retorno = url_for(
+                'novo_agendamento',
+                data=data_retorno,
+                profissional=ag.profissional or ""
+            )
+            flash(
+                f'Atendimento registrado! Retorno previsto em {ag.retorno_dias} dias. '
+                f'<a href="{link_retorno}" class="btn-wpp-flash">📅 Agendar retorno</a>',
+                "success"
+            )
+        except (ValueError, TypeError):
+            flash("Atendimento registrado!", "success")
+    else:
+        flash("Atendimento registrado!", "success")
+
     return redirect(url_for('agenda', data=ag.data))
 
 @app.route('/faltou/<int:id>')
 @login_required
 def faltou(id):
-
     ag = Agenda.query.get_or_404(id)
     bloqueio = bloquear_se_sem_permissao(ag)
     if bloqueio:
         return bloqueio
 
     definir_status(ag, "faltou")
-
     db.session.commit()
+
+    if ag.telefone:
+        nome = ag.cliente or "Cliente"
+        msg = (
+            f"Olá, *{nome}*! 😊 Notamos que não conseguiu comparecer ao seu agendamento "
+            f"de *{ag.procedimento}* hoje. Que tal reagendarmos? "
+            "Estamos à disposição para te atender! 🌸"
+        )
+        link = criar_link_whatsapp(ag.telefone, msg)
+        flash(
+            f'Falta registrada. <a href="{link}" target="_blank" class="btn-wpp-flash">📲 Enviar mensagem de reagendamento</a>',
+            "warning"
+        )
+    else:
+        flash("Falta registrada.", "warning")
 
     return redirect(url_for('agenda', data=ag.data))
 
@@ -557,15 +658,22 @@ def novo_agendamento():
         db.session.commit()
 
         # ===== WHATSAPP =====
-
         mensagem = gerar_mensagem_confirmacao(novo)
-        texto = urllib.parse.quote(mensagem)
+        telefone_limpo = novo.telefone.strip().replace(" ", "").replace("-", "")
+        link_wpp = f"https://wa.me/55{telefone_limpo}?text={urllib.parse.quote(mensagem)}"
 
-        telefone = novo.telefone.strip().replace(" ", "").replace("-", "")
+        # Tenta envio automático pela API; cai no link manual se não configurado
+        provider = os.environ.get("WHATSAPP_PROVIDER", "")
+        if provider:
+            try:
+                from parvati_system.whatsapp import enviar_mensagem as _wpp
+                _wpp(novo.telefone, mensagem)
+                flash("Agendamento criado! Confirmação enviada automaticamente por WhatsApp. ✅", "success")
+                return redirect(url_for('agenda', data=novo.data))
+            except Exception as exc:
+                app.logger.warning("Falha no envio automático — abrindo link: %s", exc)
 
-        link = f"https://wa.me/55{telefone}?text={texto}"
-
-        return redirect(link)
+        return redirect(link_wpp)
 
     return render_template(
         "novo_agendamento.html",
@@ -812,7 +920,7 @@ def funcionarias():
             funcionaria = User.query.get_or_404(user_id)
         else:
             if User.query.filter_by(email=email).first():
-                flash("Ja existe uma funcionaria com este e-mail.")
+                flash("Ja existe uma parceira com este e-mail.")
                 return redirect(url_for('funcionarias'))
 
             funcionaria = User()
@@ -822,6 +930,7 @@ def funcionarias():
         funcionaria.email = email
         funcionaria.profissional = request.form.get('profissional')
         funcionaria.perfil = request.form.get('perfil') if usuario_admin() else "profissional"
+        funcionaria.telefone = re.sub(r'\D', '', request.form.get('telefone', '')) or None
         funcionaria.ativo = request.form.get('ativo') == "on"
 
         if senha:
@@ -834,7 +943,7 @@ def funcionarias():
             funcionaria.senha = generate_password_hash("Parvati@2026")
 
         db.session.commit()
-        flash("Funcionaria salva.")
+        flash("Parceira salva.")
         return redirect(url_for('funcionarias'))
 
     usuarios = User.query.order_by(User.nome.asc()).all()
@@ -1213,39 +1322,59 @@ if __name__ == '__main__':
 @login_required
 @admin_required
 def financeiro():
-    financeiros = Financeiro.query.order_by(Financeiro.data.desc()).all()
+    mes_param = request.args.get("mes") or date.today().strftime("%Y-%m")
+    try:
+        ano, mes = int(mes_param[:4]), int(mes_param[5:7])
+    except (ValueError, IndexError):
+        ano, mes = date.today().year, date.today().month
+        mes_param = date.today().strftime("%Y-%m")
+
+    mes_inicio = f"{ano:04d}-{mes:02d}-01"
+    if mes == 12:
+        mes_fim = f"{ano+1:04d}-01-01"
+    else:
+        mes_fim = f"{ano:04d}-{mes+1:02d}-01"
+
+    if request.method == 'POST':
+        novo = Financeiro(
+            cliente=request.form.get('cliente', '').strip(),
+            procedimento=request.form.get('procedimento', '').strip(),
+            valor=float(request.form.get('valor') or 0),
+            tipo=request.form.get('tipo', 'entrada'),
+            forma_pagamento=request.form.get('forma_pagamento', 'Pix'),
+            data=request.form.get('data') or date.today().strftime("%Y-%m-%d"),
+            vencimento=request.form.get('vencimento') or None,
+            boleto_status='nao_gerado',
+            boleto_link=request.form.get('boleto_link') or None,
+            linha_digitavel=request.form.get('linha_digitavel') or None,
+            integracao_boleto=request.form.get('integracao_boleto', 'manual'),
+        )
+        db.session.add(novo)
+        db.session.commit()
+        flash("Lançamento registrado.", "success")
+        return redirect(url_for('financeiro', mes=mes_param))
+
+    financeiros = Financeiro.query.filter(
+        Financeiro.data >= mes_inicio,
+        Financeiro.data < mes_fim,
+    ).order_by(Financeiro.data.desc()).all()
 
     entradas = sum((f.valor or 0) for f in financeiros if f.tipo == "entrada")
     saidas = sum((f.valor or 0) for f in financeiros if f.tipo == "saida")
     saldo = entradas - saidas
-    custo_atendimentos = db.session.query(db.func.sum(Agenda.custo_estimado)).filter(Agenda.tipo != "bloqueio").scalar() or 0
-    lucro_estimado = entradas - saidas - custo_atendimentos
 
+    custo_atendimentos = db.session.query(db.func.sum(Agenda.custo_estimado)).filter(
+        Agenda.tipo != "bloqueio",
+        Agenda.data >= mes_inicio,
+        Agenda.data < mes_fim,
+    ).scalar() or 0
+    lucro_estimado = entradas - custo_atendimentos
 
-    if request.method == 'POST':
-        novo = Financeiro(
-
-            cliente=request.form['cliente'],
-            procedimento=request.form['procedimento'],
-            valor=float(request.form.get('valor') or 0),
-            tipo=request.form.get('tipo', 'entrada'),
-            forma_pagamento=request.form['forma_pagamento'],
-            data=request.form['data'],
-            vencimento=request.form.get('vencimento'),
-            boleto_status=request.form.get('boleto_status', 'nao_gerado'),
-            boleto_link=request.form.get('boleto_link'),
-            linha_digitavel=request.form.get('linha_digitavel'),
-            integracao_boleto=request.form.get('integracao_boleto', 'manual')
-        )
-
-        db.session.add(novo)
-        db.session.commit()
-
-        flash("Pagamento registrado")
-
-        return redirect(url_for('financeiro'))
-
-    pagamentos = Financeiro.query.all()
+    mes_anterior = (date(ano, mes, 1) - timedelta(days=1)).strftime("%Y-%m")
+    if mes == 12:
+        mes_seguinte = f"{ano+1:04d}-01"
+    else:
+        mes_seguinte = f"{ano:04d}-{mes+1:02d}"
 
     return render_template(
         'financeiro.html',
@@ -1255,11 +1384,23 @@ def financeiro():
         saldo=saldo,
         custo_atendimentos=custo_atendimentos,
         lucro_estimado=lucro_estimado,
-        total_mes=entradas,
-        entradas_hoje=entradas,
-        saidas_hoje=saidas,
-        pagamentos=pagamentos
+        mes_param=mes_param,
+        mes_anterior=mes_anterior,
+        mes_seguinte=mes_seguinte,
+        mes_label=date(ano, mes, 1).strftime("%B de %Y"),
     )
+
+
+@app.route('/financeiro/excluir/<int:id>', methods=['POST'])
+@login_required
+@admin_required
+def excluir_lancamento(id):
+    mes_param = request.form.get('mes') or date.today().strftime("%Y-%m")
+    lancamento = Financeiro.query.get_or_404(id)
+    db.session.delete(lancamento)
+    db.session.commit()
+    flash("Lançamento excluído.", "success")
+    return redirect(url_for('financeiro', mes=mes_param))
 
 
 @app.route('/financeiro/boleto/<int:id>')
@@ -2222,30 +2363,130 @@ def campanhas_retorno():
 
 # ── Webhooks WhatsApp ─────────────────────────────────────────────────────────
 
+_mensagens_processadas: set[str] = set()
+_MAX_IDS_CACHE = 500
+
+
 def _extrair_mensagem_webhook(payload: dict) -> tuple[str, str, str] | None:
     """
     Extrai (telefone, texto, nome) de payloads dos provedores suportados.
     Retorna None se não for uma mensagem de texto válida.
     """
+    global _mensagens_processadas
+
     # Z-API
     if "phone" in payload and "text" in payload:
+        # Z-API envia fromMe=True quando é mensagem enviada pelo bot
+        if payload.get("fromMe") or payload.get("isGroupMsg"):
+            return None
         texto = payload.get("text", {})
         if isinstance(texto, dict):
             texto = texto.get("message", "")
+        msg_id = payload.get("messageId", "")
+        if msg_id:
+            if msg_id in _mensagens_processadas:
+                return None
+            _mensagens_processadas.add(msg_id)
+            if len(_mensagens_processadas) > _MAX_IDS_CACHE:
+                _mensagens_processadas = set(list(_mensagens_processadas)[-_MAX_IDS_CACHE:])
         return payload["phone"], str(texto), payload.get("senderName", "")
 
-    # Evolution API — data pode ser dict ou list
+    # Evolution API — só processa eventos de nova mensagem
+    event = payload.get("event", "")
+    if event and event not in ("MESSAGES_UPSERT", "messages.upsert", "message", "MESSAGES_SET"):
+        return None
+
     data = payload.get("data", {})
     if isinstance(data, list):
         data = data[0] if data else {}
-    if isinstance(data, dict) and data.get("messageType") == "conversation":
-        numero = data.get("key", {}).get("remoteJid", "").replace("@s.whatsapp.net", "")
-        texto = data.get("message", {}).get("conversation", "")
+    if isinstance(data, dict):
+        key = data.get("key", {})
+        if key.get("fromMe"):
+            return None
+        remoteJid = key.get("remoteJid", "")
+        if remoteJid.endswith("@g.us"):
+            return None
+        # Deduplicação por ID de mensagem
+        msg_id = key.get("id", "")
+        if msg_id:
+            if msg_id in _mensagens_processadas:
+                return None
+            _mensagens_processadas.add(msg_id)
+            if len(_mensagens_processadas) > _MAX_IDS_CACHE:
+                _mensagens_processadas = set(list(_mensagens_processadas)[-_MAX_IDS_CACHE:])
+        # Usa o remoteJid completo para responder corretamente (inclusive @lid)
+        numero = remoteJid
+        msg = data.get("message", {})
+        # Ignora mensagens de status/protocolo sem texto real
+        if not msg or "protocolMessage" in msg or "reactionMessage" in msg or "senderKeyDistributionMessage" in msg:
+            return None
+        texto = (
+            msg.get("conversation")
+            or msg.get("extendedTextMessage", {}).get("text")
+            or ""
+        )
         nome = data.get("pushName", "")
         if numero and texto:
             return numero, texto, nome
 
     return None
+
+
+@app.route('/api/clientes/buscar')
+@login_required
+def api_clientes_buscar():
+    """Retorna clientes que batem com o termo buscado (nome ou telefone)."""
+    q = request.args.get('q', '').strip()
+    if len(q) < 2:
+        return jsonify([])
+    clientes = Cliente.query.filter(
+        or_(
+            Cliente.nome.ilike(f'%{q}%'),
+            Cliente.telefone.ilike(f'%{q}%'),
+        )
+    ).order_by(Cliente.nome).limit(8).all()
+    return jsonify([
+        {"nome": c.nome, "telefone": c.telefone or ""}
+        for c in clientes
+    ])
+
+
+@app.route('/lembretes/enviar', methods=['POST'])
+@login_required
+def enviar_lembretes_agenda():
+    """Envia lembretes WhatsApp para os agendamentos de uma data específica."""
+    if not usuario_admin():
+        flash("Acesso restrito.", "danger")
+        return redirect(url_for("agenda"))
+
+    # data vem do formulário no formato YYYY-MM-DD (input date HTML)
+    data_html = request.form.get("data", "")
+    try:
+        datetime.strptime(data_html, "%Y-%m-%d")  # valida formato
+        data_str = data_html  # banco usa YYYY-MM-DD
+    except ValueError:
+        flash("Data inválida.", "danger")
+        return redirect(url_for("agenda"))
+
+    from parvati_system.lembretes import enviar_lembretes
+    try:
+        res = enviar_lembretes(data_str)
+        total = res["total_agendamentos"]
+        if total == 0:
+            flash(f"Nenhum agendamento encontrado para {data_str}.", "warning")
+        else:
+            msg = (
+                f"Lembretes enviados para {data_str}: "
+                f"{res['clientes_enviados']} cliente(s), "
+                f"{res['profissionais_enviados']} profissional(is)."
+            )
+            if res["falhas"]:
+                msg += f" ({res['falhas']} falha(s))"
+            flash(msg, "success" if not res["falhas"] else "warning")
+    except Exception as exc:
+        flash(f"Erro ao enviar lembretes: {exc}", "danger")
+
+    return redirect(url_for("agenda", data=data_html))
 
 
 @app.route('/webhook/whatsapp/agenda', methods=['POST'])
@@ -2270,3 +2511,33 @@ def webhook_agenda():
         app.logger.error("Erro ao enviar resposta WhatsApp: %s", exc)
 
     return jsonify({"ok": True, "resposta": resposta})
+
+
+@app.route('/api/lembretes', methods=['POST'])
+def api_lembretes():
+    """
+    Endpoint para envio automático de lembretes do dia seguinte.
+    Chamado por cron externo (ex: cron-job.org) com header X-Cron-Token.
+
+    Configurar variáveis de ambiente:
+      CRON_TOKEN       — token secreto (obrigatório)
+      WHATSAPP_NAIARA  — número da Naiara
+      WHATSAPP_POLYANA — número da Polyana (opcional)
+      etc.
+    """
+    token_esperado = os.environ.get("CRON_TOKEN", "")
+    token_recebido = (
+        request.headers.get("X-Cron-Token")
+        or (request.get_json(silent=True) or {}).get("token", "")
+    )
+    if not token_esperado or token_recebido != token_esperado:
+        return jsonify({"erro": "Não autorizado"}), 401
+
+    from parvati_system.lembretes import enviar_lembretes_amanha
+    try:
+        resumo = enviar_lembretes_amanha()
+        app.logger.info("Lembretes enviados: %s", resumo)
+        return jsonify({"ok": True, **resumo})
+    except Exception as exc:
+        app.logger.error("Erro ao enviar lembretes: %s", exc)
+        return jsonify({"erro": str(exc)}), 500

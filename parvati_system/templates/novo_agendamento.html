@@ -8,16 +8,19 @@
 <div class="form-card">
     <form method="POST">
         <label>Cliente</label>
-        <input type="text" name="cliente" required>
+        <div class="autocomplete-wrap">
+            <input type="text" name="cliente" id="campo-cliente" autocomplete="off" required placeholder="Digite o nome...">
+            <ul class="autocomplete-list" id="lista-clientes"></ul>
+        </div>
 
         <label>Telefone</label>
-        <input type="text" name="telefone" required>
+        <input type="text" name="telefone" id="campo-telefone" required placeholder="Ex: 31999990000">
 
         <label>Data</label>
         <input type="date" name="data" id="data" value="{{ data or '' }}" required>
 
         <label>Hora</label>
-        <input type="time" name="hora" value="{{ hora or '' }}" required>
+        <input type="time" name="hora" value="{{ hora or '' }}" min="07:00" max="20:00" step="600" required>
 
         <label>Profissional</label>
         <select name="profissional">
@@ -83,6 +86,46 @@
 </div>
 
 <script>
+// ── Autocomplete de clientes ──────────────────────────────────────────────
+(function () {
+    const campoCliente = document.getElementById("campo-cliente");
+    const campoTelefone = document.getElementById("campo-telefone");
+    const lista = document.getElementById("lista-clientes");
+    let timer;
+
+    campoCliente.addEventListener("input", function () {
+        clearTimeout(timer);
+        const q = this.value.trim();
+        if (q.length < 2) { lista.innerHTML = ""; lista.style.display = "none"; return; }
+
+        timer = setTimeout(() => {
+            fetch(`/api/clientes/buscar?q=${encodeURIComponent(q)}`)
+                .then(r => r.json())
+                .then(clientes => {
+                    lista.innerHTML = "";
+                    if (!clientes.length) { lista.style.display = "none"; return; }
+                    clientes.forEach(c => {
+                        const li = document.createElement("li");
+                        li.textContent = c.nome + (c.telefone ? ` — ${c.telefone}` : "");
+                        li.addEventListener("mousedown", () => {
+                            campoCliente.value = c.nome;
+                            campoTelefone.value = c.telefone || "";
+                            lista.innerHTML = "";
+                            lista.style.display = "none";
+                        });
+                        lista.appendChild(li);
+                    });
+                    lista.style.display = "block";
+                });
+        }, 250);
+    });
+
+    document.addEventListener("click", e => {
+        if (!campoCliente.contains(e.target)) { lista.innerHTML = ""; lista.style.display = "none"; }
+    });
+})();
+
+// ── Preenche campos ao selecionar procedimento ────────────────────────────
 document.getElementById("procedimento_id").addEventListener("change", function () {
     const selected = this.options[this.selectedIndex];
     if (!selected.value) {

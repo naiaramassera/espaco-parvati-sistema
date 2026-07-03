@@ -14,6 +14,7 @@ class User(UserMixin, db.Model):
     senha = db.Column(db.String(100))
     perfil = db.Column(db.String(30), default="profissional")
     profissional = db.Column(db.String(50))
+    telefone = db.Column(db.String(20))
     ativo = db.Column(db.Boolean, default=True)
 
 
