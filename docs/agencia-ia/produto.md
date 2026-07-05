@@ -17,6 +17,11 @@ antes de criar qualquer coisa. Quanto mais completo, melhores as campanhas.
 - Barriga Zero — de R$ 899 por R$ 209,90/sessão
 - Limpeza Facial — de R$ 180 por R$ 130/sessão
 
+### Promoções em destaque (alto valor — divulgar no orgânico e oferecer no WhatsApp)
+
+- HIPRO Full Face — de R$ 2.000 por R$ 1.500
+- Lavieen — de R$ 650 por R$ 499
+
 ## Catálogo completo (valores por sessão)
 
 | Procedimento | De | Por |
@@ -31,6 +36,8 @@ antes de criar qualquer coisa. Quanto mais completo, melhores as campanhas.
 | Limpeza Facial | R$ 180 | R$ 130 |
 | Skinbooster | R$ 500 | R$ 350 |
 | Botox | R$ 990 | R$ 800 |
+| HIPRO Full Face | R$ 2.000 | R$ 1.500 |
+| Lavieen | R$ 650 | R$ 499 |
 
 ## Cliente ideal
 
@@ -46,5 +53,21 @@ antes de criar qualquer coisa. Quanto mais completo, melhores as campanhas.
 
 ## Orçamento de tráfego
 
-- Mensal: R$ ___ ← PREENCHER
-- Teto de CPL (custo por lead no WhatsApp) aceitável: R$ ___
+- Mensal: R$ 100
+- Teto de CPL (custo por lead no WhatsApp) aceitável: R$ 10
+
+### Nota estratégica para orçamento de R$ 100/mês
+
+R$ 100/mês (~R$ 3,30/dia) fica abaixo do mínimo para o Meta otimizar campanhas
+contínuas. Com essa verba, a estratégia deve ser:
+
+- **Concentrar, não diluir**: rodar em rajadas — ex.: 5 dias com R$ 20/dia,
+  uma vez por quinzena, com UMA oferta só (a porta-de-entrada mais barata).
+- Priorizar **impulsionamento de post com prova social** (Reels que já
+  performou organicamente) em vez de campanha fria elaborada.
+- O high-ticket (HIPRO Full Face, Botox) NÃO deve ser anunciado com essa verba
+  — ele entra como upsell no WhatsApp/atendimento depois que a cliente chega
+  pela oferta barata.
+- Complementar com tráfego orgânico: Reels 3x/semana + as campanhas de
+  relacionamento do próprio sistema (aniversário, inativas, retorno), que são
+  de graça e já estão prontas na tela Campanhas.
