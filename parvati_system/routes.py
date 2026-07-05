@@ -2532,6 +2532,14 @@ def webhook_agenda():
     from parvati_system.whatsapp import enviar_mensagem
 
     payload = request.get_json(silent=True) or {}
+
+    # Só processa mensagens da instância correta (Espaço Parvati)
+    instancia_esperada = os.environ.get("EVOLUTION_INSTANCE", "parvati")
+    instancia_recebida = payload.get("instance", "")
+    if instancia_recebida and instancia_recebida != instancia_esperada:
+        app.logger.info("Webhook ignorado: instância '%s' não é '%s'", instancia_recebida, instancia_esperada)
+        return jsonify({"ok": True})
+
     resultado = _extrair_mensagem_webhook(payload)
     if not resultado:
         return jsonify({"ok": True})

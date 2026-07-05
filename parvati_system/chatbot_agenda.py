@@ -270,7 +270,7 @@ def _estado_inicio(conversa: ConversaBot, _texto: str) -> str:
 
 
 def _estado_busca_nome(conversa: ConversaBot, texto: str) -> str:
-    dados = conversa.dados or {}
+    dados = dict(conversa.dados or {})
     limpo = texto.strip()
 
     # Remove prefixos comuns ("meu nome é Ana" → "Ana")
@@ -319,7 +319,7 @@ def _estado_procedimento(conversa: ConversaBot, texto: str) -> str:
         lista = "\n".join(f"{i+1}. {p.nome}" for i, p in enumerate(procedimentos))
         return f"Não encontrei essa opção. Por favor, escolha pelo número:\n\n{lista}"
 
-    dados = conversa.dados or {}
+    dados = dict(conversa.dados or {})
     dados["procedimento_id"] = escolhido.id
     dados["procedimento_nome"] = escolhido.nome
     dados["procedimento_valor"] = float(escolhido.valor_padrao or 0)
@@ -355,7 +355,7 @@ def _estado_procedimento(conversa: ConversaBot, texto: str) -> str:
 
 
 def _estado_horario(conversa: ConversaBot, texto: str) -> str:
-    dados = conversa.dados or {}
+    dados = dict(conversa.dados or {})
     datas = dados.get("datas_opcoes", [])
     horas_por_data = dados.get("datas_horas", {})
 
@@ -404,7 +404,7 @@ def _estado_horario(conversa: ConversaBot, texto: str) -> str:
 
 
 def _estado_confirmar(conversa: ConversaBot, texto: str) -> str:
-    dados = conversa.dados or {}
+    dados = dict(conversa.dados or {})
     resposta = _normalizar(texto)
 
     if resposta in ("nao", "não", "n", "cancelar"):
@@ -446,9 +446,12 @@ def _estado_confirmar(conversa: ConversaBot, texto: str) -> str:
 # ── entry point ───────────────────────────────────────────────────────────────
 
 def _estado_ia(conversa: ConversaBot, texto: str) -> str:
-    dados = conversa.dados or {}
+    dados = dict(conversa.dados or {})
     nome = dados.get("nome_cliente", conversa.nome_remetente or "")
-    historico = dados.get("historico", [])
+    # list(): copia a lista para NÃO mutar in-place o objeto carregado do banco.
+    # Mutar a lista interna do JSON corrompe a detecção de mudança do SQLAlchemy
+    # e o histórico deixa de ser persistido no commit.
+    historico = list(dados.get("historico") or [])
 
     # Detecta pedido explícito de falar com humano antes de chamar IA
     _texto_norm = _normalizar(texto)
@@ -500,62 +503,103 @@ _HANDLERS = {
 }
 
 
+_SESSION_TIMEOUT_HORAS = 24     # > 24h → recomeça (mantendo o nome)
+_INATIVIDADE_RETOMADA_MIN = 60  # > 1h parado → pergunta se ainda tem interesse
+
+
 def processar_mensagem(telefone: str, texto: str, nome: str = "") -> str:
     """
     Recebe uma mensagem do WhatsApp e retorna a resposta do bot.
     Deve ser chamado dentro do app context do Flask.
     """
     tel = _digitos(telefone)
+    agora = datetime.utcnow()
+
     conversa = ConversaBot.query.filter_by(telefone=tel, canal="agenda").filter(
-        ConversaBot.estado.notin_(["concluido", "cancelado", "sem_catalogo", "sem_vaga"])
+        ConversaBot.estado.notin_(["concluido", "cancelado", "sem_catalogo", "sem_vaga", "expirado"])
     ).order_by(ConversaBot.atualizado_em.desc()).first()
 
-    nova_sessao_retorno = False
+    # Sessão > 24h → expira e recomeça (mas mantém nome conhecido)
+    if conversa and conversa.atualizado_em:
+        horas_inativo = (agora - conversa.atualizado_em).total_seconds() / 3600
+        if horas_inativo > _SESSION_TIMEOUT_HORAS:
+            conversa.estado = "expirado"
+            conversa = None
 
+    nova_sessao = False
     if not conversa:
-        nome_retorno = _verificar_cliente_retornando(tel)
-        if nome_retorno:
-            # Cliente já conhecido — pula etapa de nome
-            conversa = ConversaBot(
-                telefone=tel,
-                canal="agenda",
-                estado="ia",
-                nome_remetente=nome_retorno,
-                dados={"nome_cliente": nome_retorno, "historico": []},
-            )
-            nova_sessao_retorno = True
-        else:
-            # Primeiro contato — vai perguntar o nome
-            conversa = ConversaBot(
-                telefone=tel,
-                canal="agenda",
-                estado="inicio",
-                nome_remetente=nome or "",
-                dados={},
-            )
+        nome_conhecido = nome or _verificar_cliente_retornando(tel) or ""
+        conversa = ConversaBot(
+            telefone=tel,
+            canal="agenda",
+            estado="ia" if nome_conhecido else "inicio",
+            nome_remetente=nome_conhecido,
+            dados={"nome_cliente": nome_conhecido, "historico": []} if nome_conhecido else {},
+        )
+        nova_sessao = True
         db.session.add(conversa)
 
+    # Atualiza nome se veio do WhatsApp e ainda não tínhamos
     if nome and not conversa.nome_remetente:
         conversa.nome_remetente = nome
+        dados = dict(conversa.dados or {})
+        if not dados.get("nome_cliente"):
+            dados["nome_cliente"] = nome
+        conversa.dados = dados
 
-    conversa.atualizado_em = datetime.utcnow()
+    # Calcula inatividade ANTES de atualizar o timestamp
+    minutos_inativo = (
+        (agora - conversa.atualizado_em).total_seconds() / 60
+        if conversa.atualizado_em else 0
+    )
 
-    # Cliente retornando: saúda pelo nome sem passar a mensagem pela IA
-    if nova_sessao_retorno:
-        nome_retorno = conversa.nome_remetente
-        saudacao = f"Olá de volta, *{nome_retorno}*! 🌸 Como posso te ajudar hoje?"
-        dados = conversa.dados or {}
+    conversa.atualizado_em = agora
+
+    # Nova sessão com nome já conhecido → saudação direta sem re-perguntar
+    if nova_sessao and conversa.estado == "ia":
+        nome_c = conversa.nome_remetente or "você"
+        eh_retorno = bool(_verificar_cliente_retornando(tel))
+        if eh_retorno:
+            saudacao = f"Olá de volta, *{nome_c}*! 🌸 Como posso te ajudar hoje?"
+        else:
+            saudacao = f"Olá, *{nome_c}*! 😊 Sou a Mari, assistente da *Massera Estética*. Como posso te ajudar?"
+        dados = dict(conversa.dados or {})
         dados["historico"] = [{"role": "assistant", "content": saudacao}]
         conversa.dados = dados
         db.session.commit()
         return saudacao
+
+    # Retomada após inatividade (< 24h, mas parado há mais de 1h)
+    if not nova_sessao and minutos_inativo >= _INATIVIDADE_RETOMADA_MIN:
+        estado_atual = conversa.estado
+        dados = dict(conversa.dados or {})
+        nome_c = conversa.nome_remetente or "você"
+
+        # Estava no meio de um agendamento → pergunta se ainda tem interesse
+        if estado_atual in ("procedimento", "horario", "confirmar"):
+            proc = dados.get("procedimento_nome", "o procedimento")
+            conversa.estado = "ia"
+            hist = list(dados.get("historico") or [])  # copia p/ não mutar o objeto do banco
+            retomada = f"Olá, *{nome_c}*! 🌸 Você havia iniciado o agendamento de *{proc}*. Ainda tem interesse? É só me dizer!"
+            hist.append({"role": "assistant", "content": retomada})
+            dados["historico"] = hist
+            conversa.dados = dados
+            db.session.commit()
+            return retomada
+
+        # Estava aguardando humano → volta para IA normalmente
+        if estado_atual == "aguardando_humano":
+            conversa.estado = "ia"
+            dados.setdefault("historico", [])
+            conversa.dados = dados
+            # segue para o handler ia abaixo
 
     estado = conversa.estado
     handler = _HANDLERS.get(estado)
     if handler:
         resposta = handler(conversa, texto.strip())
     else:
-        resposta = "Seu agendamento já foi registrado! Se precisar de mais alguma coisa, é só chamar. 😊"
+        resposta = "Olá! Como posso te ajudar? 😊"
 
     db.session.commit()
     return resposta
