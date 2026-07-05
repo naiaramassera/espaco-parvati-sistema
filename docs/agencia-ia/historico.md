@@ -11,3 +11,12 @@ testado e o que funcionou. Não apague — é a memória da agência.
 - Aprendizado:
 - Decisão (escalar / pausar / iterar):
 -->
+
+## 2026-07-08 — Rajada Limpeza Facial R$ 130 (planejada)
+
+- Oferta / criativo / público testado: Limpeza Facial de R$ 180 por R$ 130;
+  3 ângulos (oferta direta, autocuidado, confiança local); mulheres 25–55,
+  Lafaiete + 15 km, Advantage+ aberto; R$ 20/dia por 5 dias (08–12/07).
+- Resultado: (preencher em 13/07 com /relatorio-trafego)
+- Aprendizado: —
+- Decisão: —
