@@ -26,6 +26,9 @@ services:
       # IA
       - key: ANTHROPIC_API_KEY
         value: ""
+      # Data do próximo HIPRO Day / Lavieen Day (ex: "24/07") — atualizar todo mês
+      - key: PROXIMO_DAY
+        value: "24/07"
       # Oráculos de Lemúria
       - key: ORACULOS_PRECO_SESSAO
         value: "220"

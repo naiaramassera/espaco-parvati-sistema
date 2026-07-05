@@ -2,6 +2,7 @@ from datetime import datetime
 
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
+from sqlalchemy.ext.mutable import MutableDict
 
 db = SQLAlchemy()
 
@@ -209,9 +210,18 @@ class ConversaBot(db.Model):
     estado = db.Column(db.String(40), nullable=False, default="inicio")
     nome_remetente = db.Column(db.String(150))
     agendamento_id = db.Column(db.Integer, db.ForeignKey('agenda.id'), nullable=True)
-    dados = db.Column(db.JSON, default=dict)
+    # MutableDict: sem ele, mutações no dict não são detectadas pelo SQLAlchemy
+    # e o histórico da conversa nunca é salvo no banco.
+    dados = db.Column(MutableDict.as_mutable(db.JSON), default=dict)
     criado_em = db.Column(db.DateTime, default=datetime.utcnow)
     atualizado_em = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class MensagemWebhookProcessada(db.Model):
+    """Deduplicação de mensagens de webhook entre workers e reinícios."""
+    id = db.Column(db.Integer, primary_key=True)
+    msg_id = db.Column(db.String(120), unique=True, nullable=False)
+    criado_em = db.Column(db.DateTime, default=datetime.utcnow)
 
 
 class ProdutoEstoque(db.Model):

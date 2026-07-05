@@ -44,6 +44,13 @@ FACIAL:
 
 Obs: esses são valores por sessão. Temos pacotes com valores ainda melhores — pergunte!
 
+== HIPRO DAY & LAVIEEN DAY (um dia por mês, vagas limitadas) ==
+• HIPRO Full Face — lifting sem cortes com ultrassom focalizado que estimula o colágeno do rosto inteiro — de R$ 2.000 por R$ 1.500
+• Lavieen — laser conhecido como "pele de porcelana", trabalha viço, textura e uniformidade do tom — de R$ 650 por R$ 499
+Esses dois procedimentos acontecem em UM único dia por mês na clínica (o "HIPRO Day / Lavieen Day"), quando o equipamento vem até nós. As vagas são limitadas de verdade.
+{DAY_INFO}
+- Ao falar deles, nunca prometa resultado ("elimina rugas", "rejuvenesce") — fale de estímulo de colágeno, viço e textura.
+
 == OUTROS SERVIÇOS ==
 • Tirzepatida (aplicação) — consulte valores
 • MAF / Massagem MAF — consulte valores
@@ -69,7 +76,25 @@ Se qualquer um dos casos abaixo ocorrer, responda APENAS com o texto exato: [PRE
 - O cliente pede para falar com uma atendente ou pessoa real
 - O cliente parece frustrado ou insistente com algo que você já respondeu
 - O cliente menciona reclamação, problema com serviço, ou situação delicada
+- O cliente quer RESERVAR vaga no HIPRO Day / Lavieen Day (a reserva é feita pela equipe)
 Não escreva mais nada além de [PRECISO_DE_HUMANO] nesses casos."""
+
+
+def _system_prompt() -> str:
+    """Monta o system prompt com a data do próximo Day (env PROXIMO_DAY, ex: '24/07')."""
+    proximo_day = os.environ.get("PROXIMO_DAY", "").strip()
+    if proximo_day:
+        day_info = (
+            f"O próximo HIPRO Day / Lavieen Day será dia {proximo_day}. "
+            "Se a cliente demonstrar interesse, informe a data e o valor promocional "
+            "e pergunte se quer reservar uma vaga."
+        )
+    else:
+        day_info = (
+            "A data do próximo Day ainda será confirmada pela equipe. Se a cliente "
+            "tiver interesse, diga que a equipe entrará em contato com a data."
+        )
+    return SYSTEM_PROMPT.replace("{DAY_INFO}", day_info)
 
 
 def _chamar_ia(nome: str, historico: list[dict], mensagem: str) -> str:
@@ -82,7 +107,7 @@ def _chamar_ia(nome: str, historico: list[dict], mensagem: str) -> str:
     messages = list(historico[-10:])  # últimas 10 mensagens de contexto
     messages.append({"role": "user", "content": mensagem})
 
-    system = SYSTEM_PROMPT
+    system = _system_prompt()
     if nome:
         system += f"\n\nO nome da cliente nesta conversa é: {nome}."
 
@@ -148,6 +173,15 @@ def _digitos(valor: str) -> str:
     return re.sub(r"\D", "", str(valor or ""))
 
 
+def _telefone_confiavel(tel: str) -> bool:
+    """
+    True se os dígitos parecem um telefone real (BR: 10 a 13 dígitos).
+    JIDs @lid viram sequências longas que NÃO são telefone — casar esses
+    dígitos com o cadastro faz o bot chamar a pessoa pelo nome de outra cliente.
+    """
+    return 10 <= len(tel or "") <= 13
+
+
 def _horarios_livres(data_str: str, profissional: str) -> list[str]:
     ocupados = {
         a.hora for a in Agenda.query.filter_by(
@@ -177,9 +211,14 @@ def _datas_com_vaga(profissional: str) -> list[tuple[str, str, list[str]]]:
 
 def _encontrar_ou_criar_cliente(nome: str, telefone: str) -> Cliente:
     tel = _digitos(telefone)
-    cliente = Cliente.query.filter(
-        Cliente.telefone.contains(tel[-8:])
-    ).first() if tel else None
+    cliente = None
+    if tel and _telefone_confiavel(tel):
+        cliente = Cliente.query.filter(
+            Cliente.telefone.contains(tel[-8:])
+        ).first()
+    elif tel:
+        # Identificador @lid: só aceita correspondência exata
+        cliente = Cliente.query.filter_by(telefone=telefone).first()
     if not cliente:
         cliente = Cliente(nome=nome or "Cliente WhatsApp", telefone=telefone)
         db.session.add(cliente)
@@ -195,12 +234,14 @@ def _verificar_cliente_retornando(tel: str) -> Optional[str]:
     if not tel:
         return None
 
-    # Busca no cadastro de clientes
-    cliente = Cliente.query.filter(
-        Cliente.telefone.contains(tel[-8:])
-    ).first()
-    if cliente and cliente.nome and cliente.nome not in ("Cliente WhatsApp", ""):
-        return cliente.nome
+    # Busca no cadastro de clientes — apenas quando os dígitos são um telefone
+    # real; IDs @lid podem casar por acaso com o telefone de outra cliente.
+    if _telefone_confiavel(tel):
+        cliente = Cliente.query.filter(
+            Cliente.telefone.contains(tel[-8:])
+        ).first()
+        if cliente and cliente.nome and cliente.nome not in ("Cliente WhatsApp", ""):
+            return cliente.nome
 
     # Busca em conversas anteriores com nome registrado
     conversa_anterior = ConversaBot.query.filter_by(
@@ -230,7 +271,25 @@ def _estado_inicio(conversa: ConversaBot, _texto: str) -> str:
 
 def _estado_busca_nome(conversa: ConversaBot, texto: str) -> str:
     dados = dict(conversa.dados or {})
-    nome = texto.strip().title()
+    limpo = texto.strip()
+
+    # Remove prefixos comuns ("meu nome é Ana" → "Ana")
+    for prefixo in ("meu nome é", "meu nome e", "me chamo", "sou a", "sou o", "aqui é", "aqui e"):
+        if _normalizar(limpo).startswith(prefixo):
+            limpo = limpo[len(prefixo):].strip()
+            break
+
+    # Se a resposta parece uma pergunta/frase (não um nome), não registra
+    # como nome — responde direto pela IA para o bot não chamar a cliente
+    # de "Quero Saber O Valor Do Botox".
+    if "?" in limpo or len(limpo.split()) > 4 or not re.search(r"[a-zA-ZÀ-ÿ]", limpo):
+        dados["nome_cliente"] = ""
+        dados["historico"] = []
+        conversa.dados = dados
+        conversa.estado = "ia"
+        return _estado_ia(conversa, texto)
+
+    nome = limpo.title()
     dados["nome_cliente"] = nome
     dados["historico"] = []
     conversa.dados = dados
@@ -325,7 +384,7 @@ def _estado_horario(conversa: ConversaBot, texto: str) -> str:
 
     if not hora_normalizada:
         return (
-            f"Esse horário não está disponível em {data_str}.\n"
+            f"Esse horário não está disponível em {_data_display(data_str)}.\n"
             "Horários livres: " + "  |  ".join(horas_livres)
         )
 
@@ -389,7 +448,10 @@ def _estado_confirmar(conversa: ConversaBot, texto: str) -> str:
 def _estado_ia(conversa: ConversaBot, texto: str) -> str:
     dados = dict(conversa.dados or {})
     nome = dados.get("nome_cliente", conversa.nome_remetente or "")
-    historico = dados.get("historico", [])
+    # list(): copia a lista para NÃO mutar in-place o objeto carregado do banco.
+    # Mutar a lista interna do JSON corrompe a detecção de mudança do SQLAlchemy
+    # e o histórico deixa de ser persistido no commit.
+    historico = list(dados.get("historico") or [])
 
     # Detecta pedido explícito de falar com humano antes de chamar IA
     _texto_norm = _normalizar(texto)
@@ -517,7 +579,7 @@ def processar_mensagem(telefone: str, texto: str, nome: str = "") -> str:
         if estado_atual in ("procedimento", "horario", "confirmar"):
             proc = dados.get("procedimento_nome", "o procedimento")
             conversa.estado = "ia"
-            hist = dados.get("historico", [])
+            hist = list(dados.get("historico") or [])  # copia p/ não mutar o objeto do banco
             retomada = f"Olá, *{nome_c}*! 🌸 Você havia iniciado o agendamento de *{proc}*. Ainda tem interesse? É só me dizer!"
             hist.append({"role": "assistant", "content": retomada})
             dados["historico"] = hist
