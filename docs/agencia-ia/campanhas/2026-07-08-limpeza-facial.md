@@ -121,8 +121,9 @@ Roteiro:
 - Stories diários: bastidores, horários vagos do dia, repost de cliente
 - Responder leads em **menos de 5 min** no horário comercial (a Mari segura o
   primeiro atendimento, mas oferta quente esfria rápido)
-- No atendimento: quem agendar limpeza, oferecer o combo com **Lavieen
-  (R$ 499)** — 1 venda paga 3 meses de tráfego
+- No atendimento: quem agendar limpeza, convidar para o **Lavieen Day /
+  HIPRO Day de 24/07** (Lavieen R$ 499, HIPRO Full Face R$ 1.500 — só nesse
+  dia, vagas limitadas) — 1 venda de Lavieen paga 3 meses de tráfego
 
 ## Depois (13/07)
 

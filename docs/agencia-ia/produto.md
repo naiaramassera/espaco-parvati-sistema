@@ -23,6 +23,15 @@ antes de criar qualquer coisa. Quanto mais completo, melhores as campanhas.
 - HIPRO Full Face — de R$ 2.000 por R$ 1.500
 - Lavieen — de R$ 650 por R$ 499
 
+**Importante — HIPRO Day e Lavieen Day:** esses dois procedimentos acontecem em
+UM dia por mês ("HIPRO Day" / "Lavieen Day"), quando o equipamento/profissional
+vem à clínica. Em julho/2026: **dia 24**. Isso significa:
+
+- Vagas realmente limitadas → usar escassez REAL na divulgação ("só dia 24,
+  X vagas") — sem inventar urgência falsa.
+- Toda divulgação de HIPRO/Lavieen deve mirar em encher esse dia específico.
+- No atendimento e no upsell, oferecer agendamento para o próximo Day.
+
 ## Catálogo completo (valores por sessão)
 
 | Procedimento | De | Por |

@@ -65,9 +65,21 @@ Por quê ela e não as outras:
 | Data | Ação |
 |---|---|
 | até 07/07 | Gravar os 3 criativos (roteiros via `/criar-campanha`) e configurar a campanha |
-| 08–12/07 | Rajada no ar · Stories diários · responder leads rápido |
+| 08–12/07 | Rajada no ar · Stories diários · responder leads rápido · nos atendimentos, convidar para o HIPRO/Lavieen Day (24/07) |
 | 13/07 | Rodar `/relatorio-trafego` com os números · registrar aprendizados |
-| semana 3–4 | Só orgânico + follow-up de leads + campanhas de relacionamento do sistema |
+| 14–23/07 | **Aquecimento do HIPRO Day / Lavieen Day (24/07)** — 100% orgânico: contagem regressiva nos Stories, Reels explicando os procedimentos, disparo para a base de clientes (tela Campanhas) com "só dia 24, vagas limitadas" |
+| 24/07 | **HIPRO Day + Lavieen Day** — cobertura ao vivo nos Stories (gera criativo e prova social para agosto) |
+| 25–31/07 | Follow-up de leads não convertidos + colher depoimentos das clientes do dia 24 |
+
+### O evento mensal como motor da estratégia
+
+O HIPRO/Lavieen Day é o ativo de marketing mais valioso da clínica: escassez
+real (1 dia/mês), ticket alto e evento fotografável. A esteira do mês inteiro
+aponta pra ele: o anúncio barato (limpeza R$ 130) traz gente nova → o
+atendimento convida para o Day → o Day gera conteúdo e depoimentos → que viram
+os criativos do mês seguinte. Quando houver verba extra (> R$ 250/mês), o
+primeiro investimento novo deve ser uma rajada de 3–4 dias exclusiva do Day,
+na semana anterior (17–23), com o Lavieen R$ 499 como oferta anunciada.
 
 ## Próximos passos executáveis
 
