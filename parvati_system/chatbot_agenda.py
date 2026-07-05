@@ -441,12 +441,8 @@ _HANDLERS = {
 }
 
 
-_SESSION_TIMEOUT_HORAS = 4  # sessão sem atividade por mais de 4h é reiniciada
-
-_RESTART_KEYWORDS = (
-    "oi", "olá", "ola", "bom dia", "boa tarde", "boa noite",
-    "agendar", "quero", "preciso", "gostaria", "pode", "ola",
-)
+_SESSION_TIMEOUT_HORAS = 24     # > 24h → recomeça (mantendo o nome)
+_INATIVIDADE_RETOMADA_MIN = 60  # > 1h parado → pergunta se ainda tem interesse
 
 
 def processar_mensagem(telefone: str, texto: str, nome: str = "") -> str:
@@ -461,7 +457,7 @@ def processar_mensagem(telefone: str, texto: str, nome: str = "") -> str:
         ConversaBot.estado.notin_(["concluido", "cancelado", "sem_catalogo", "sem_vaga", "expirado"])
     ).order_by(ConversaBot.atualizado_em.desc()).first()
 
-    # Sessão inativa há mais de X horas → descarta e recomeça
+    # Sessão > 24h → expira e recomeça (mas mantém nome conhecido)
     if conversa and conversa.atualizado_em:
         horas_inativo = (agora - conversa.atualizado_em).total_seconds() / 3600
         if horas_inativo > _SESSION_TIMEOUT_HORAS:
@@ -470,7 +466,6 @@ def processar_mensagem(telefone: str, texto: str, nome: str = "") -> str:
 
     nova_sessao = False
     if not conversa:
-        # Usa nome do WhatsApp ou busca no histórico/cadastro
         nome_conhecido = nome or _verificar_cliente_retornando(tel) or ""
         conversa = ConversaBot(
             telefone=tel,
@@ -490,18 +485,15 @@ def processar_mensagem(telefone: str, texto: str, nome: str = "") -> str:
             dados["nome_cliente"] = nome
         conversa.dados = dados
 
-    # Cliente travado em aguardando_humano: permite reiniciar com cumprimento
-    if conversa.estado == "aguardando_humano":
-        texto_norm = _normalizar(texto)
-        if any(kw in texto_norm for kw in _RESTART_KEYWORDS):
-            conversa.estado = "ia"
-            dados = dict(conversa.dados or {})
-            dados.setdefault("historico", [])
-            conversa.dados = dados
+    # Calcula inatividade ANTES de atualizar o timestamp
+    minutos_inativo = (
+        (agora - conversa.atualizado_em).total_seconds() / 60
+        if conversa.atualizado_em else 0
+    )
 
     conversa.atualizado_em = agora
 
-    # Nova sessão com nome já conhecido → saudação direta
+    # Nova sessão com nome já conhecido → saudação direta sem re-perguntar
     if nova_sessao and conversa.estado == "ia":
         nome_c = conversa.nome_remetente or "você"
         eh_retorno = bool(_verificar_cliente_retornando(tel))
@@ -514,6 +506,31 @@ def processar_mensagem(telefone: str, texto: str, nome: str = "") -> str:
         conversa.dados = dados
         db.session.commit()
         return saudacao
+
+    # Retomada após inatividade (< 24h, mas parado há mais de 1h)
+    if not nova_sessao and minutos_inativo >= _INATIVIDADE_RETOMADA_MIN:
+        estado_atual = conversa.estado
+        dados = dict(conversa.dados or {})
+        nome_c = conversa.nome_remetente or "você"
+
+        # Estava no meio de um agendamento → pergunta se ainda tem interesse
+        if estado_atual in ("procedimento", "horario", "confirmar"):
+            proc = dados.get("procedimento_nome", "o procedimento")
+            conversa.estado = "ia"
+            hist = dados.get("historico", [])
+            retomada = f"Olá, *{nome_c}*! 🌸 Você havia iniciado o agendamento de *{proc}*. Ainda tem interesse? É só me dizer!"
+            hist.append({"role": "assistant", "content": retomada})
+            dados["historico"] = hist
+            conversa.dados = dados
+            db.session.commit()
+            return retomada
+
+        # Estava aguardando humano → volta para IA normalmente
+        if estado_atual == "aguardando_humano":
+            conversa.estado = "ia"
+            dados.setdefault("historico", [])
+            conversa.dados = dados
+            # segue para o handler ia abaixo
 
     estado = conversa.estado
     handler = _HANDLERS.get(estado)
