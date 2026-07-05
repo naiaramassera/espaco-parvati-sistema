@@ -7,9 +7,10 @@ antes de criar qualquer coisa. Quanto mais completo, melhores as campanhas.
 
 - **Nome:** Massera Estética (Espaço Parvati)
 - **Segmento:** clínica de estética facial e corporal
-- **Localização:** Minas Gerais (defina cidade/raio de atuação para segmentação)
+- **Localização:** Conselheiro Lafaiete, MG (segmentar anúncios num raio de
+  10–15 km; inclui cidades vizinhas como Congonhas e Ouro Branco)
 - **Canal de conversão:** WhatsApp (bot Mari faz o primeiro atendimento e agendamento)
-- **Link de conversão:** wa.me/SEUNUMERO ← PREENCHER
+- **Link de conversão:** https://wa.me/5531991269732
 
 ## Oferta principal (o que anunciar primeiro)
 
@@ -42,7 +43,7 @@ antes de criar qualquer coisa. Quanto mais completo, melhores as campanhas.
 ## Cliente ideal
 
 <!-- Descreva com detalhe: idade, dores, desejos, objeções, poder aquisitivo -->
-- Mulheres, 25–55 anos, na região da clínica
+- Mulheres, 25–55 anos, em Conselheiro Lafaiete e região
 - Dores: (preencher — ex.: incômodo com gordura localizada, flacidez, pele)
 - Objeções comuns: preço, medo de dor, "será que funciona?", falta de tempo
 
