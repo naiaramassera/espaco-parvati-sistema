@@ -12,7 +12,9 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(100))
     email = db.Column(db.String(100), unique=True)
-    senha = db.Column(db.String(100))
+    # 255: o hash scrypt do werkzeug tem ~160 caracteres — String(100) estoura
+    # no Postgres (SQLite ignora o limite, por isso nunca apareceu antes)
+    senha = db.Column(db.String(255))
     perfil = db.Column(db.String(30), default="profissional")
     profissional = db.Column(db.String(50))
     telefone = db.Column(db.String(20))
