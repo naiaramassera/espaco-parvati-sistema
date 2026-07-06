@@ -3,6 +3,7 @@ import os
 from flask import Flask
 from flask_login import LoginManager
 from sqlalchemy import text
+from sqlalchemy import inspect as sqlalchemy_inspect
 from werkzeug.security import check_password_hash, generate_password_hash
 from parvati_system.models import db, User, ProdutoEstoque, Agenda, Cliente, ProcedimentoCatalogo, ProcedimentoInsumo
 
@@ -21,7 +22,7 @@ CORES_PROFISSIONAIS = {
 
 app.config["SECRET_KEY"] = os.environ.get("PARVATI_SECRET_KEY", "parvati-secret-local")
 
-_db_url = os.environ.get("DATABASE_URL", "")
+_db_url = os.environ.get("DATABASE_URL", "") or os.environ.get("POSTGRES_URL", "")
 if not _db_url:
     # Vercel tem filesystem read-only; usa /tmp para SQLite
     _sqlite_path = "/tmp/parvati.db" if os.environ.get("VERCEL") else "parvati.db"
@@ -87,15 +88,19 @@ def garantir_colunas():
         },
     }
 
+    # Inspector funciona em qualquer banco (PRAGMA era exclusivo do SQLite e
+    # quebrava o app inteiro ao conectar um Postgres).
+    inspector = sqlalchemy_inspect(db.engine)
+    eh_postgres = db.engine.dialect.name.startswith("postgres")
+
     for tabela, novas_colunas in colunas.items():
-        existentes = {
-            coluna[1]
-            for coluna in db.session.execute(text(f"PRAGMA table_info({tabela})")).fetchall()
-        }
+        existentes = {coluna["name"] for coluna in inspector.get_columns(tabela)}
 
         for nome, tipo in novas_colunas.items():
             if nome not in existentes:
-                db.session.execute(text(f"ALTER TABLE {tabela} ADD COLUMN {nome} {tipo}"))
+                if eh_postgres:
+                    tipo = tipo.replace("BOOLEAN DEFAULT 1", "BOOLEAN DEFAULT TRUE")
+                db.session.execute(text(f'ALTER TABLE "{tabela}" ADD COLUMN {nome} {tipo}'))
 
     db.session.commit()
 
