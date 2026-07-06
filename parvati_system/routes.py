@@ -2528,6 +2528,10 @@ def enviar_lembretes_agenda():
 @app.route('/webhook/whatsapp/agenda', methods=['POST'])
 def webhook_agenda():
     """Webhook para o chatbot de agendamento da Parvati Estética."""
+    # Botão de pausa: com BOT_PAUSADO=1 a Mari ignora tudo e fica em silêncio.
+    if os.environ.get("BOT_PAUSADO", "").strip().lower() in ("1", "true", "sim"):
+        return jsonify({"ok": True, "pausado": True})
+
     from parvati_system.chatbot_agenda import processar_mensagem
     from parvati_system.whatsapp import enviar_mensagem
 
