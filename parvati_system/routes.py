@@ -2534,9 +2534,9 @@ def webhook_agenda():
     payload = request.get_json(silent=True) or {}
 
     # Só processa mensagens da instância correta (Espaço Parvati)
-    instancia_esperada = os.environ.get("EVOLUTION_INSTANCE", "parvati")
+    instancia_esperada = os.environ.get("EVOLUTION_INSTANCE", "")
     instancia_recebida = payload.get("instance", "")
-    if instancia_recebida and instancia_recebida != instancia_esperada:
+    if instancia_esperada and instancia_recebida != instancia_esperada:
         app.logger.info("Webhook ignorado: instância '%s' não é '%s'", instancia_recebida, instancia_esperada)
         return jsonify({"ok": True})
 
