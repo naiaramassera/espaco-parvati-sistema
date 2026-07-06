@@ -97,20 +97,10 @@ def _system_prompt() -> str:
     return SYSTEM_PROMPT.replace("{DAY_INFO}", day_info)
 
 
-def _chamar_ia(nome: str, historico: list[dict], mensagem: str) -> str:
-    """Chama a API do Claude para gerar resposta inteligente."""
-    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
-    model = os.environ.get("ANTHROPIC_MODEL", "claude-haiku-4-5-20251001")
-    if not api_key:
-        return "Olá! Para mais informações sobre procedimentos e valores, entre em contato com nossa equipe. 😊"
+MODELO_PADRAO = "claude-haiku-4-5-20251001"
 
-    messages = list(historico[-10:])  # últimas 10 mensagens de contexto
-    messages.append({"role": "user", "content": mensagem})
 
-    system = _system_prompt()
-    if nome:
-        system += f"\n\nO nome da cliente nesta conversa é: {nome}."
-
+def _requisicao_claude(system: str, messages: list[dict], model: str, api_key: str) -> str:
     payload = json.dumps({
         "model": model,
         "max_tokens": 300,
@@ -128,12 +118,41 @@ def _chamar_ia(nome: str, historico: list[dict], mensagem: str) -> str:
         },
         method="POST",
     )
+    with urllib.request.urlopen(req, timeout=15) as resp:
+        result = json.loads(resp.read().decode("utf-8"))
+        return result["content"][0]["text"].strip()
+
+
+def _chamar_ia(nome: str, historico: list[dict], mensagem: str) -> str:
+    """Chama a API do Claude para gerar resposta inteligente."""
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
+    model = os.environ.get("ANTHROPIC_MODEL", "").strip() or MODELO_PADRAO
+    if not api_key:
+        logger.error("ANTHROPIC_API_KEY não configurada — bot sem IA")
+        return "Olá! Para mais informações sobre procedimentos e valores, entre em contato com nossa equipe. 😊"
+
+    messages = list(historico[-10:])  # últimas 10 mensagens de contexto
+    messages.append({"role": "user", "content": mensagem})
+
+    system = _system_prompt()
+    if nome:
+        system += f"\n\nO nome da cliente nesta conversa é: {nome}."
+
     try:
-        with urllib.request.urlopen(req, timeout=20) as resp:
-            result = json.loads(resp.read().decode("utf-8"))
-            return result["content"][0]["text"].strip()
-    except Exception:
-        return "Desculpe, tive um probleminha aqui! Nossa equipe vai te atender em breve. 😊"
+        return _requisicao_claude(system, messages, model, api_key)
+    except urllib.error.HTTPError as exc:
+        corpo = exc.read().decode("utf-8", errors="replace")[:500]
+        logger.error("API Claude falhou (HTTP %s, modelo=%s): %s", exc.code, model, corpo)
+        # Modelo configurado inválido/desativado → tenta o modelo padrão
+        if exc.code in (400, 404) and model != MODELO_PADRAO and "model" in corpo.lower():
+            try:
+                logger.info("Repetindo com modelo padrão %s", MODELO_PADRAO)
+                return _requisicao_claude(system, messages, MODELO_PADRAO, api_key)
+            except Exception as exc2:
+                logger.error("Retry com modelo padrão também falhou: %s", exc2)
+    except Exception as exc:
+        logger.error("API Claude falhou (modelo=%s): %s", model, exc)
+    return "Desculpe, tive um probleminha aqui! Nossa equipe vai te atender em breve. 😊"
 
 
 def _notificar_equipe(telefone_cliente: str, nome_cliente: str, ultima_mensagem: str) -> None:
