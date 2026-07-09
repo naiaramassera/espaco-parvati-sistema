@@ -1,6 +1,6 @@
 # Campanha: Limpeza Facial R$ 130 — Rajada de Julho
 
-- **Período:** 08 a 12/07/2026 (5 dias)
+- **Período:** 15 a 19/07/2026 (5 dias — remarcado; era 08–12/07)
 - **Verba:** R$ 20/dia (R$ 100 total)
 - **Objetivo:** conversas no WhatsApp → agendamentos pela Mari
 - **Estrutura:** 1 campanha → 1 conjunto → 3 anúncios (um por ângulo)
@@ -97,7 +97,7 @@ Roteiro:
 1. Criar campanha → objetivo **Engajamento** → local de conversão
    **Apps de mensagem** → WhatsApp.
 2. **Orçamento no nível da campanha (CBO): R$ 20/dia** · Programação:
-   início 08/07 00:00 · término 12/07 23:59.
+   início 15/07 00:00 · término 19/07 23:59.
 3. No conjunto: página da clínica + número do WhatsApp · público e
    posicionamentos conforme acima.
 4. Criar os 3 anúncios (um por ângulo) com os vídeos e textos deste documento.
@@ -125,7 +125,7 @@ Roteiro:
   HIPRO Day de 24/07** (Lavieen R$ 499, HIPRO Full Face R$ 1.500 — só nesse
   dia, vagas limitadas) — 1 venda de Lavieen paga 3 meses de tráfego
 
-## Depois (13/07)
+## Depois (20/07)
 
 - Exportar métricas do Gerenciador (investido, impressões, cliques, conversas)
 - Rodar `/relatorio-trafego`
