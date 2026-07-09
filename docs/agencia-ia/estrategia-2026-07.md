@@ -60,16 +60,20 @@ Por quê ela e não as outras:
 - Não pausar nenhum anúncio com menos de 3 dias OU menos de R$ 30 gastos
 - Ao final: registrar resultado no `historico.md` e decidir a rajada de agosto
 
-## Calendário de julho
+## Calendário de julho (remarcado em 06/07 — rajada deslocada uma semana)
 
 | Data | Ação |
 |---|---|
-| até 07/07 | Gravar os 3 criativos (roteiros via `/criar-campanha`) e configurar a campanha |
-| 08–12/07 | Rajada no ar · Stories diários · responder leads rápido · nos atendimentos, convidar para o HIPRO/Lavieen Day (24/07) |
-| 13/07 | Rodar `/relatorio-trafego` com os números · registrar aprendizados |
-| 14–23/07 | **Aquecimento do HIPRO Day / Lavieen Day (24/07)** — 100% orgânico: contagem regressiva nos Stories, Reels explicando os procedimentos, disparo para a base de clientes (tela Campanhas) com "só dia 24, vagas limitadas" |
+| até 14/07 | Gravar os 3 criativos (roteiros via `/criar-campanha`) e configurar a campanha · resolver créditos da IA e reativar a Mari · vincular WhatsApp Business à página |
+| 14–23/07 | **Aquecimento do HIPRO Day / Lavieen Day (24/07)** — orgânico: contagem regressiva nos Stories, Reels explicando os procedimentos, disparo para a base de clientes (tela Campanhas) com "só dia 24, vagas limitadas" |
+| 15–19/07 | **Rajada no ar** (qua–dom, R$ 20/dia) · Stories diários · responder leads rápido · nos atendimentos, convidar para o Day (24/07) — a rajada roda DENTRO do aquecimento: cada lead novo já chega perto do evento |
+| 20/07 | Rodar `/relatorio-trafego` com os números · registrar aprendizados |
 | 24/07 | **HIPRO Day + Lavieen Day** — cobertura ao vivo nos Stories (gera criativo e prova social para agosto) |
 | 25–31/07 | Follow-up de leads não convertidos + colher depoimentos das clientes do dia 24 |
+
+> Atenção: se a Mari ainda estiver pausada em 15/07, os leads da rajada devem
+> ser respondidos manualmente e RÁPIDO (menos de 5 min) — ou reative a Mari
+> antes de ligar os anúncios.
 
 ### O evento mensal como motor da estratégia
 

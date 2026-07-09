@@ -54,8 +54,8 @@ Documentos prontos em `docs/agencia-ia/`:
 **Pendências da campanha (com a Naiara):**
 1. Vincular o WhatsApp Business (31 99126-9732) à página do Facebook/Instagram
 2. Gravar os 3 vídeos (roteiros no documento da campanha)
-3. Montar a campanha no Gerenciador de Anúncios (R$ 20/dia, 08–12/07)
-4. Dia 13/07: trazer as métricas e rodar `/relatorio-trafego`
+3. Montar a campanha no Gerenciador de Anúncios (R$ 20/dia, 15–19/07)
+4. Dia 20/07: trazer as métricas e rodar `/relatorio-trafego`
 
 ## 🗄️ Sistema web da clínica
 
