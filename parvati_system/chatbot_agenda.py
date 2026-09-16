@@ -80,9 +80,36 @@ Se qualquer um dos casos abaixo ocorrer, responda APENAS com o texto exato: [PRE
 Não escreva mais nada além de [PRECISO_DE_HUMANO] nesses casos."""
 
 
+def _day_esta_no_futuro(valor: str) -> bool:
+    """
+    True se a data do Day ainda não passou. Aceita 'DD/MM' ou 'DD/MM/AAAA'.
+    Data vencida = configuração esquecida: melhor a Mari dizer que a equipe
+    confirma do que anunciar às clientes um Day que já aconteceu.
+    """
+    partes = re.findall(r"\d+", valor)
+    if len(partes) < 2:
+        return False
+    hoje = date.today()
+    try:
+        dia, mes = int(partes[0]), int(partes[1])
+        ano = int(partes[2]) if len(partes) > 2 else hoje.year
+        if ano < 100:
+            ano += 2000
+        return date(ano, mes, dia) >= hoje
+    except ValueError:
+        return False
+
+
 def _system_prompt() -> str:
     """Monta o system prompt com a data do próximo Day (env PROXIMO_DAY, ex: '24/07')."""
     proximo_day = os.environ.get("PROXIMO_DAY", "").strip()
+    if proximo_day and not _day_esta_no_futuro(proximo_day):
+        logger.warning(
+            "PROXIMO_DAY=%r já passou — a Mari não vai anunciar essa data. "
+            "Atualize a variável de ambiente com a data do próximo Day.",
+            proximo_day,
+        )
+        proximo_day = ""
     if proximo_day:
         day_info = (
             f"O próximo HIPRO Day / Lavieen Day será dia {proximo_day}. "
