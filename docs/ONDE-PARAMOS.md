@@ -1,6 +1,10 @@
 # Onde Paramos — Espaço Parvati / Massera Estética
 
-Resumo vivo do estado dos projetos. Atualizado em **06/07/2026**.
+Resumo vivo do estado dos projetos. Atualizado em **22/09/2026**.
+
+## 🔗 Link do sistema
+
+**https://espaco-parvati.vercel.app** — publica automaticamente a cada merge na branch `main`. Link fixo, não muda entre deploys.
 
 ## 🤖 Mari (bot do WhatsApp da clínica)
 
